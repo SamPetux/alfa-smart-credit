@@ -1,0 +1,19 @@
+---
+description: Frontend UI skills — impeccable, taste, motion-react
+globs:
+  - frontend/**
+  - "**/*.{tsx,jsx,css,scss}"
+alwaysApply: false
+---
+
+# Frontend skills
+
+Перед любой задачей по UI/UX кабинетов (клиент или банк):
+
+1. Прочитать и следовать skills:
+   - `.agents/skills/impeccable/SKILL.md`
+   - `.agents/skills/design-taste-frontend/SKILL.md`
+   - `.agents/skills/motion-react/SKILL.md` (если есть анимация или переходы)
+2. Режим поверхностей кабинета — **Operate**: сканируемость, консистентность, понятные состояния; бренд в деталях, не в декоративном шуме.
+3. Не нарушать продуктовые правила: demo-метки, серверные статусы, Money как string, UI ≠ авторизация.
+4. Не менять `contracts/`, backend и risk ради визуала.

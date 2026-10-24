@@ -7,11 +7,29 @@
       "skillPath": "plugins/backend-development/skills/architecture-patterns/SKILL.md",
       "computedHash": "a66aaa5aa49b75bec12b6270dcde8794b1f0cc75fbb9ecb999e43f8b723b461f"
     },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "69021ac7e671c0c0d85d65b570003cef360b1c296323fa28c042884e146478ca"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "e656a2530eb6b5fac300924dfedbc12d01e9e562fd80177dd8c1b860941f754f"
+    },
+    "motion-react": {
+      "source": "bm629/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/motion-react/SKILL.md",
+      "computedHash": "3b81770938bb489a92cf425ddcb297ebea4b5f3f4ca51b322a1ed71d94e93e32"
     },
     "security-best-practices": {
       "source": "openai/skills",

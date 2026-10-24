@@ -33,3 +33,6 @@ documents_volume/
 
 # Local IDE noise (skills under .agents/ or .cursor/skills stay tracked if committed)
 *.swp
+
+# Раздатки для команды — только локально, в репозиторий не кладём
+docs/handouts/
