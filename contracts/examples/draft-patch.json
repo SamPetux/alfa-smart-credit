@@ -1,0 +1,12 @@
+{
+  "expected_version": 1,
+  "draft_fields": {
+    "purpose": "working_capital",
+    "requested_amount": "1000000.00",
+    "term_months": 12,
+    "company_form": "LLC",
+    "monthly_revenue": "600000.00",
+    "monthly_operating_costs": "400000.00",
+    "declared_monthly_debt_payments": "100000.00"
+  }
+}

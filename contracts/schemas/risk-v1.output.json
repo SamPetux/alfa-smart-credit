@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alfa-smart-credit.local/contracts/schemas/risk-v1.output.json",
+  "title": "RiskResult",
+  "description": "Выход evaluate(). recommendation OFFER|REJECT|NEEDS_INFO. Score/band/factors = null если оценка невозможна; не подставлять 0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model_version",
+    "policy_version",
+    "risk_score",
+    "risk_band",
+    "recommendation",
+    "requires_officer",
+    "reason_codes",
+    "requested_fields",
+    "factors",
+    "candidate",
+    "affordability",
+    "client_explanations",
+    "officer_explanations"
+  ],
+  "properties": {
+    "schema_version": { "const": "risk-v1" },
+    "model_version": { "type": "string", "const": "score-v1" },
+    "policy_version": { "type": "string", "const": "policy-v1" },
+    "risk_score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+    "risk_band": {
+      "type": ["string", "null"],
+      "enum": ["A", "B", "C", null]
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["OFFER", "REJECT", "NEEDS_INFO"]
+    },
+    "requires_officer": { "type": "boolean" },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "MISSING_DATA",
+          "DEBT_DATA_MISMATCH",
+          "REGISTRY_INACTIVE",
+          "BUSINESS_TOO_YOUNG",
+          "OVERDUE_LIMIT",
+          "RISK_POLICY_LIMIT",
+          "LOWER_AMOUNT_REQUIRED",
+          "AFFORDABILITY_BELOW_MINIMUM",
+          "CASHFLOW_NON_POSITIVE"
+        ]
+      }
+    },
+    "requested_fields": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "factors": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "points"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["AGE", "MARGIN", "PAYMENT_HISTORY", "EXISTING_DEBT"]
+          },
+          "points": { "type": "integer" }
+        }
+      }
+    },
+    "candidate": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "product_code",
+            "amount",
+            "term_months",
+            "annual_rate",
+            "currency",
+            "fees",
+            "is_alternative"
+          ],
+          "properties": {
+            "product_code": {
+              "type": "string",
+              "enum": ["WORKING_CAPITAL", "EQUIPMENT"]
+            },
+            "amount": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+            "term_months": { "type": "integer", "minimum": 1 },
+            "annual_rate": { "type": "string", "pattern": "^0\\.[0-9]{2}$" },
+            "currency": { "const": "RUB" },
+            "fees": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+            "is_alternative": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "affordability": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "free_cashflow",
+            "existing_payment",
+            "requested_payment",
+            "requested_dscr",
+            "offered_payment",
+            "offered_dscr",
+            "total_payment"
+          ],
+          "properties": {
+            "free_cashflow": {
+              "type": ["string", "null"],
+              "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+            },
+            "existing_payment": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]+\\.[0-9]{2}$"
+            },
+            "requested_payment": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]+\\.[0-9]{2}$"
+            },
+            "requested_dscr": { "type": ["string", "null"] },
+            "offered_payment": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]+\\.[0-9]{2}$"
+            },
+            "offered_dscr": { "type": ["string", "null"] },
+            "total_payment": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]+\\.[0-9]{2}$"
+            }
+          }
+        }
+      ]
+    },
+    "client_explanations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "officer_explanations": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

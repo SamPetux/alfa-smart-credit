@@ -1,0 +1,10 @@
+# Placeholder frontend image. Pin node digest after first successful build.
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY frontend /app
+# RUN npm ci && npm run build  — after package-lock exists
+
+FROM caddy:2-alpine
+COPY --from=build /app/dist /usr/share/caddy
+# Temporary empty until frontend build exists
+RUN mkdir -p /usr/share/caddy && echo "frontend scaffold" > /usr/share/caddy/index.html

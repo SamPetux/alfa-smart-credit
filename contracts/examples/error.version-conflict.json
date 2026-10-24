@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "VERSION_CONFLICT",
+    "message": "Заявка уже изменилась. Обновите данные перед действием.",
+    "field_errors": [],
+    "request_id": "req-demo-001"
+  }
+}

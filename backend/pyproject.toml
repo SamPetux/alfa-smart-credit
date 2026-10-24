@@ -1,0 +1,33 @@
+[project]
+name = "alfa-smart-credit-backend"
+version = "0.1.0"
+description = "Modular monolith API and worker for Alfa Smart Credit"
+requires-python = ">=3.12"
+# Версии зафиксируем после первой успешной сборки (B01); не использовать latest.
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "pydantic>=2.9,<3",
+  "sqlalchemy>=2.0,<3",
+  "alembic>=1.14,<2",
+  "psycopg[binary]>=3.2,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "httpx>=0.28,<1",
+  "ruff>=0.8,<1",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["backend*"]
+
+[tool.pytest.ini_options]
+pythonpath = [".."]
+testpaths = ["tests"]

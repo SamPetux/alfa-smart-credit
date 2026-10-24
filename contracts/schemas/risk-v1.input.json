@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alfa-smart-credit.local/contracts/schemas/risk-v1.input.json",
+  "title": "RiskInput",
+  "description": "Вход чистой функции evaluate(). Money — строки с двумя знаками. null = missing, не ноль.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "application_id",
+    "revision",
+    "product_code",
+    "requested_amount",
+    "term_months",
+    "monthly_revenue",
+    "monthly_operating_costs",
+    "declared_monthly_debt_payments",
+    "verified_monthly_debt_payments",
+    "company_age_months",
+    "registry_status",
+    "max_overdue_days_12m",
+    "required_documents_present",
+    "sources_complete",
+    "data_conflicts",
+    "is_synthetic"
+  ],
+  "properties": {
+    "schema_version": { "const": "risk-v1" },
+    "application_id": { "type": "string", "format": "uuid" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "product_code": { "type": "string", "enum": ["WORKING_CAPITAL", "EQUIPMENT"] },
+    "requested_amount": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+    "term_months": { "type": "integer", "minimum": 1 },
+    "monthly_revenue": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]{2}$"
+    },
+    "monthly_operating_costs": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]{2}$"
+    },
+    "declared_monthly_debt_payments": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]{2}$"
+    },
+    "verified_monthly_debt_payments": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]{2}$"
+    },
+    "company_age_months": { "type": ["integer", "null"], "minimum": 0 },
+    "registry_status": {
+      "type": ["string", "null"],
+      "enum": ["ACTIVE", "INACTIVE", null]
+    },
+    "max_overdue_days_12m": { "type": ["integer", "null"], "minimum": 0 },
+    "required_documents_present": { "type": "boolean" },
+    "sources_complete": { "type": "boolean" },
+    "data_conflicts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "is_synthetic": { "type": "boolean" }
+  }
+}

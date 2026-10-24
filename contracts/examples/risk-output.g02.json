@@ -1,0 +1,41 @@
+{
+  "schema_version": "risk-v1",
+  "model_version": "score-v1",
+  "policy_version": "policy-v1",
+  "risk_score": 100,
+  "risk_band": "A",
+  "recommendation": "OFFER",
+  "requires_officer": true,
+  "reason_codes": ["LOWER_AMOUNT_REQUIRED"],
+  "requested_fields": [],
+  "factors": [
+    { "code": "AGE", "points": 25 },
+    { "code": "MARGIN", "points": 25 },
+    { "code": "PAYMENT_HISTORY", "points": 30 },
+    { "code": "EXISTING_DEBT", "points": 20 }
+  ],
+  "candidate": {
+    "product_code": "WORKING_CAPITAL",
+    "amount": "641000.00",
+    "term_months": 12,
+    "annual_rate": "0.22",
+    "currency": "RUB",
+    "fees": "0.00",
+    "is_alternative": true
+  },
+  "affordability": {
+    "free_cashflow": "200000.00",
+    "existing_payment": "100000.00",
+    "requested_payment": null,
+    "requested_dscr": null,
+    "offered_payment": "59994.00",
+    "offered_dscr": "1.25004688",
+    "total_payment": null
+  },
+  "client_explanations": [
+    "Предложена меньшая сумма с учётом текущих платежей и доходов"
+  ],
+  "officer_explanations": [
+    "Requested 1000000.00 не проходит DSCR; offered 641000.00 после floor step 1000"
+  ]
+}

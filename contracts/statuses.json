@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationStatus",
+  "description": "Канонический enum статусов заявки (G0). Источник истины для backend, OpenAPI и frontend-типов.",
+  "version": "api-v1",
+  "statuses": [
+    "DRAFT",
+    "SUBMITTED",
+    "CHECKING",
+    "NEEDS_INFO",
+    "PROCESSING_ERROR",
+    "MANUAL_REVIEW",
+    "OFFERED",
+    "ACCEPTED",
+    "SIGNED",
+    "COMPLETED",
+    "REJECTED",
+    "DECLINED_BY_CLIENT"
+  ],
+  "terminal": ["COMPLETED", "REJECTED", "DECLINED_BY_CLIENT"],
+  "client_labels": {
+    "DRAFT": "Черновик",
+    "SUBMITTED": "Проверяем сведения",
+    "CHECKING": "Проверяем сведения",
+    "NEEDS_INFO": "Нужны дополнительные сведения",
+    "MANUAL_REVIEW": "Заявка у специалиста",
+    "OFFERED": "Предложены условия",
+    "ACCEPTED": "Условия приняты",
+    "SIGNED": "Подписание смоделировано",
+    "COMPLETED": "Выдача смоделирована",
+    "REJECTED": "По заявке принято отрицательное решение",
+    "DECLINED_BY_CLIENT": "Вы отклонили предложение",
+    "PROCESSING_ERROR": "Проверка временно недоступна"
+  },
+  "allowed_actions": [
+    "SAVE",
+    "SUBMIT",
+    "SAVE_SUPPLEMENT",
+    "RESUBMIT",
+    "ACCEPT_OFFER",
+    "DECLINE_OFFER",
+    "SIMULATE_SIGN",
+    "REQUEST_INFO",
+    "APPROVE_OFFER",
+    "REJECT",
+    "RETRY_CHECKS",
+    "RETRY_DISBURSEMENT"
+  ],
+  "commands": [
+    {
+      "from": "DRAFT",
+      "command": "save",
+      "actor": "CLIENT",
+      "to": "DRAFT"
+    },
+    {
+      "from": "DRAFT",
+      "command": "submit",
+      "actor": "CLIENT",
+      "to": "SUBMITTED"
+    },
+    {
+      "from": "SUBMITTED",
+      "command": "start",
+      "actor": "WORKER",
+      "to": "CHECKING"
+    },
+    {
+      "from": "CHECKING",
+      "command": "require_info",
+      "actor": "WORKER",
+      "to": "NEEDS_INFO"
+    },
+    {
+      "from": "CHECKING",
+      "command": "finish",
+      "actor": "WORKER",
+      "to": "MANUAL_REVIEW"
+    },
+    {
+      "from": "CHECKING",
+      "command": "processing_failed",
+      "actor": "WORKER",
+      "to": "PROCESSING_ERROR"
+    },
+    {
+      "from": "PROCESSING_ERROR",
+      "command": "retry_checks",
+      "actor": "OFFICER",
+      "to": "SUBMITTED"
+    },
+    {
+      "from": "NEEDS_INFO",
+      "command": "save_supplement",
+      "actor": "CLIENT",
+      "to": "NEEDS_INFO"
+    },
+    {
+      "from": "NEEDS_INFO",
+      "command": "resubmit",
+      "actor": "CLIENT",
+      "to": "SUBMITTED"
+    },
+    {
+      "from": "MANUAL_REVIEW",
+      "command": "request_info",
+      "actor": "OFFICER",
+      "to": "NEEDS_INFO"
+    },
+    {
+      "from": "MANUAL_REVIEW",
+      "command": "approve_offer",
+      "actor": "OFFICER",
+      "to": "OFFERED"
+    },
+    {
+      "from": "MANUAL_REVIEW",
+      "command": "reject",
+      "actor": "OFFICER",
+      "to": "REJECTED"
+    },
+    {
+      "from": "OFFERED",
+      "command": "accept_offer",
+      "actor": "CLIENT",
+      "to": "ACCEPTED"
+    },
+    {
+      "from": "OFFERED",
+      "command": "decline_offer",
+      "actor": "CLIENT",
+      "to": "DECLINED_BY_CLIENT"
+    },
+    {
+      "from": "ACCEPTED",
+      "command": "simulate_sign",
+      "actor": "CLIENT",
+      "to": "SIGNED"
+    },
+    {
+      "from": "SIGNED",
+      "command": "complete_simulation",
+      "actor": "WORKER",
+      "to": "COMPLETED"
+    }
+  ]
+}

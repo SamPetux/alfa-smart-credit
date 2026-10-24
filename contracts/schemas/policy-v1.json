@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alfa-smart-credit.local/contracts/schemas/policy-v1.json",
+  "title": "PolicyV1",
+  "description": "Демонстрационная кредитная политика. Числа учебные, не банковский стандарт.",
+  "version": "policy-v1",
+  "products": {
+    "WORKING_CAPITAL": {
+      "purpose": "working_capital",
+      "amount_min": "100000.00",
+      "amount_max": "3000000.00",
+      "amount_step": "1000.00",
+      "term_months": [6, 12, 18, 24],
+      "min_company_age_months": 6,
+      "rates": { "A": "0.22", "B": "0.26" },
+      "dscr_min": { "A": "1.25", "B": "1.40" },
+      "required_documents": ["FINANCIAL_SUMMARY"]
+    },
+    "EQUIPMENT": {
+      "purpose": "equipment",
+      "amount_min": "300000.00",
+      "amount_max": "5000000.00",
+      "amount_step": "1000.00",
+      "term_months": [12, 24, 36],
+      "min_company_age_months": 12,
+      "rates": { "A": "0.20", "B": "0.24" },
+      "dscr_min": { "A": "1.25", "B": "1.40" },
+      "required_documents": ["FINANCIAL_SUMMARY", "EQUIPMENT_QUOTE"]
+    }
+  },
+  "score_bands": {
+    "A": { "min": 80, "max": 100 },
+    "B": { "min": 60, "max": 79 },
+    "C": { "min": 0, "max": 59 }
+  },
+  "stop_factors": {
+    "max_overdue_days_12m": 30,
+    "require_positive_cashflow": true
+  },
+  "debt_mismatch": {
+    "absolute_rub": "10000.00",
+    "relative": "0.10"
+  },
+  "currency": "RUB",
+  "rounding": {
+    "payment": "CEIL_KOPECK",
+    "interest": "ROUND_HALF_UP",
+    "offer_amount_step": "1000.00",
+    "offer_amount_direction": "FLOOR"
+  }
+}

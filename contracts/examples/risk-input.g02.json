@@ -1,0 +1,19 @@
+{
+  "schema_version": "risk-v1",
+  "application_id": "00000000-0000-4000-8000-000000000101",
+  "revision": 1,
+  "product_code": "WORKING_CAPITAL",
+  "requested_amount": "1000000.00",
+  "term_months": 12,
+  "monthly_revenue": "600000.00",
+  "monthly_operating_costs": "400000.00",
+  "declared_monthly_debt_payments": "100000.00",
+  "verified_monthly_debt_payments": "100000.00",
+  "company_age_months": 30,
+  "registry_status": "ACTIVE",
+  "max_overdue_days_12m": 0,
+  "required_documents_present": true,
+  "sources_complete": true,
+  "data_conflicts": [],
+  "is_synthetic": true
+}

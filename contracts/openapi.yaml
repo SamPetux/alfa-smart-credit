@@ -1,0 +1,777 @@
+openapi: 3.1.0
+info:
+  title: Alfa Smart Credit API
+  version: api-v1
+  description: |
+    Контракт API v1 (G0). Источник истины вместе с `contracts/statuses.json`
+    и схемами risk/policy. Реализация FastAPI должна совпадать с этим файлом;
+    snapshot JSON — `contracts/openapi.json` (генерируется после первой сборки).
+servers:
+  - url: /api/v1
+    description: Same-origin via reverse proxy
+tags:
+  - name: demo
+  - name: auth
+  - name: products
+  - name: applications
+  - name: bank
+  - name: health
+paths:
+  /demo/profiles:
+    get:
+      tags: [demo]
+      summary: Список демопрофилей (только demo mode)
+      operationId: listDemoProfiles
+      responses:
+        "200":
+          description: Безопасные названия и роли
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles]
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DemoProfile"
+  /demo/session:
+    post:
+      tags: [demo]
+      summary: Демо-вход по profile_id
+      operationId: createDemoSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profile_id]
+              properties:
+                profile_id:
+                  type: string
+      responses:
+        "200":
+          description: Session cookie + CSRF
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Вход тестового пользователя (non-demo)
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Текущий пользователь
+      operationId: me
+      responses:
+        "200":
+          description: User + role + company + csrf
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Выход
+      operationId: logout
+      responses:
+        "204":
+          description: Session revoked
+  /products:
+    get:
+      tags: [products]
+      summary: Каталог продуктов
+      operationId: listProducts
+      responses:
+        "200":
+          description: Продукты и лимиты
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [products]
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+  /applications:
+    get:
+      tags: [applications]
+      summary: Список заявок клиента
+      operationId: listApplications
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Клиентские проекции
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationList"
+    post:
+      tags: [applications]
+      summary: Создать черновик
+      operationId: createApplication
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_code]
+              properties:
+                product_code:
+                  $ref: "#/components/schemas/ProductCode"
+      responses:
+        "201":
+          description: Новый DRAFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientApplication"
+  /applications/{id}:
+    get:
+      tags: [applications]
+      summary: Заявка (клиентская проекция)
+      operationId: getApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientApplication"
+    patch:
+      tags: [applications]
+      summary: Сохранить черновик / дополнения
+      operationId: patchApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DraftPatch"
+            examples:
+              draft:
+                $ref: "#/components/examples/DraftPatch"
+      responses:
+        "200":
+          description: Обновлено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientApplication"
+        "409":
+          $ref: "#/components/responses/Error"
+  /applications/{id}/documents:
+    post:
+      tags: [applications]
+      summary: Загрузить документ
+      operationId: uploadDocument
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [kind, file, expected_version]
+              properties:
+                kind:
+                  type: string
+                  enum: [FINANCIAL_SUMMARY, EQUIPMENT_QUOTE]
+                file:
+                  type: string
+                  format: binary
+                expected_version:
+                  type: integer
+                  minimum: 1
+      responses:
+        "201":
+          description: Документ принят
+  /applications/{id}/documents/{doc_id}:
+    get:
+      tags: [applications]
+      summary: Скачать документ
+      operationId: downloadDocument
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - name: doc_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: File stream
+  /applications/{id}/submit:
+    post:
+      tags: [applications]
+      summary: Отправить заявку
+      operationId: submitApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionedCommand"
+      responses:
+        "202":
+          description: SUBMITTED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientApplication"
+  /applications/{id}/history:
+    get:
+      tags: [applications]
+      summary: Клиентская история
+      operationId: getApplicationHistory
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Safe history events
+  /applications/{id}/info-request:
+    get:
+      tags: [applications]
+      summary: Активный запрос уточнения
+      operationId: getInfoRequest
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Info request or null
+  /applications/{id}/resubmit:
+    post:
+      tags: [applications]
+      summary: Повторная отправка после уточнения
+      operationId: resubmitApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_version, info_request_id]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                info_request_id: { type: string, format: uuid }
+      responses:
+        "202":
+          description: Новая ревизия, SUBMITTED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientApplication"
+  /applications/{id}/offer:
+    get:
+      tags: [applications]
+      summary: Текущее предложение
+      operationId: getOffer
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Offer or null
+  /applications/{id}/offer/accept:
+    post:
+      tags: [applications]
+      summary: Принять предложение
+      operationId: acceptOffer
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_version, offer_id]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                offer_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ACCEPTED
+  /applications/{id}/offer/decline:
+    post:
+      tags: [applications]
+      summary: Отклонить предложение
+      operationId: declineOffer
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_version, offer_id]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                offer_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: DECLINED_BY_CLIENT
+  /applications/{id}/agreement:
+    get:
+      tags: [applications]
+      summary: Документ соглашения (simulation)
+      operationId: getAgreement
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Agreement metadata + content hash
+  /applications/{id}/agreement/simulate-sign:
+    post:
+      tags: [applications]
+      summary: Имитация подписи
+      operationId: simulateSign
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_version, agreement_id, content_hash, consent]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                agreement_id: { type: string, format: uuid }
+                content_hash: { type: string }
+                consent: { type: boolean, enum: [true] }
+      responses:
+        "202":
+          description: SIGNED
+  /bank/applications:
+    get:
+      tags: [bank]
+      summary: Очередь сотрудника
+      operationId: listBankApplications
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ApplicationStatus"
+        - name: product_code
+          in: query
+          schema:
+            $ref: "#/components/schemas/ProductCode"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Bank list
+  /bank/applications/{id}:
+    get:
+      tags: [bank]
+      summary: Досье заявки
+      operationId: getBankApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Full officer dossier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankApplication"
+  /bank/applications/{id}/request-info:
+    post:
+      tags: [bank]
+      summary: Запросить уточнение
+      operationId: requestInfo
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_version, fields, document_kinds, message]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                fields:
+                  type: array
+                  items: { type: string }
+                  minItems: 1
+                document_kinds:
+                  type: array
+                  items: { type: string }
+                message: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: NEEDS_INFO
+  /bank/applications/{id}/decision:
+    post:
+      tags: [bank]
+      summary: Подтвердить предложение или отказать
+      operationId: decideApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfficerDecision"
+      responses:
+        "200":
+          description: OFFERED or REJECTED
+  /bank/applications/{id}/retry-checks:
+    post:
+      tags: [bank]
+      summary: Повторить проверки (PROCESSING_ERROR)
+      operationId: retryChecks
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionedCommand"
+      responses:
+        "202":
+          description: SUBMITTED
+  /bank/applications/{id}/retry-disbursement:
+    post:
+      tags: [bank]
+      summary: Повторить имитацию выдачи
+      operationId: retryDisbursement
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionedCommand"
+      responses:
+        "202":
+          description: Job requeued; status remains SIGNED until complete
+  /health/live:
+    get:
+      tags: [health]
+      summary: Liveness
+      operationId: healthLive
+      responses:
+        "200":
+          description: Process up
+  /health/ready:
+    get:
+      tags: [health]
+      summary: Readiness (DB/migrations)
+      operationId: healthReady
+      responses:
+        "200":
+          description: Ready
+        "503":
+          description: Not ready
+components:
+  parameters:
+    ApplicationId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Error:
+      description: Error envelope
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          examples:
+            versionConflict:
+              $ref: "#/components/examples/VersionConflict"
+  examples:
+    DraftPatch:
+      summary: PATCH draft
+      value:
+        expected_version: 1
+        draft_fields:
+          purpose: working_capital
+          requested_amount: "1000000.00"
+          term_months: 12
+          company_form: LLC
+          monthly_revenue: "600000.00"
+          monthly_operating_costs: "400000.00"
+          declared_monthly_debt_payments: "100000.00"
+    VersionConflict:
+      summary: 409 version conflict
+      value:
+        error:
+          code: VERSION_CONFLICT
+          message: Заявка уже изменилась. Обновите данные перед действием.
+          field_errors: []
+          request_id: req-demo-001
+  schemas:
+    ProductCode:
+      type: string
+      enum: [WORKING_CAPITAL, EQUIPMENT]
+    ApplicationStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SUBMITTED
+        - CHECKING
+        - NEEDS_INFO
+        - PROCESSING_ERROR
+        - MANUAL_REVIEW
+        - OFFERED
+        - ACCEPTED
+        - SIGNED
+        - COMPLETED
+        - REJECTED
+        - DECLINED_BY_CLIENT
+    AllowedAction:
+      type: string
+      enum:
+        - SAVE
+        - SUBMIT
+        - SAVE_SUPPLEMENT
+        - RESUBMIT
+        - ACCEPT_OFFER
+        - DECLINE_OFFER
+        - SIMULATE_SIGN
+        - REQUEST_INFO
+        - APPROVE_OFFER
+        - REJECT
+        - RETRY_CHECKS
+        - RETRY_DISBURSEMENT
+    Role:
+      type: string
+      enum: [CLIENT, OFFICER]
+    Money:
+      type: string
+      pattern: "^[0-9]+\\.[0-9]{2}$"
+      description: Decimal money as string; never float
+    DemoProfile:
+      type: object
+      required: [id, display_name, role]
+      properties:
+        id: { type: string }
+        display_name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+    SessionInfo:
+      type: object
+      required: [user, csrf_token]
+      properties:
+        user:
+          type: object
+          required: [id, username, role, display_name]
+          properties:
+            id: { type: string, format: uuid }
+            username: { type: string }
+            role: { $ref: "#/components/schemas/Role" }
+            display_name: { type: string }
+            company:
+              type: object
+              nullable: true
+              properties:
+                id: { type: string, format: uuid }
+                display_name: { type: string }
+                demo_registration_id: { type: string }
+        csrf_token: { type: string }
+        demo_mode: { type: boolean }
+    Product:
+      type: object
+      required: [code, title, amount_min, amount_max, term_months]
+      properties:
+        code: { $ref: "#/components/schemas/ProductCode" }
+        title: { type: string }
+        amount_min: { $ref: "#/components/schemas/Money" }
+        amount_max: { $ref: "#/components/schemas/Money" }
+        term_months:
+          type: array
+          items: { type: integer }
+        description: { type: string }
+    DraftFields:
+      type: object
+      additionalProperties: false
+      properties:
+        purpose:
+          type: string
+          enum: [working_capital, equipment]
+        requested_amount: { $ref: "#/components/schemas/Money" }
+        term_months: { type: integer }
+        company_form: { type: string }
+        monthly_revenue: { $ref: "#/components/schemas/Money" }
+        monthly_operating_costs: { $ref: "#/components/schemas/Money" }
+        declared_monthly_debt_payments: { $ref: "#/components/schemas/Money" }
+    DraftPatch:
+      type: object
+      required: [expected_version, draft_fields]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        draft_fields: { $ref: "#/components/schemas/DraftFields" }
+    VersionedCommand:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+    ClientApplication:
+      type: object
+      required:
+        - id
+        - status
+        - version
+        - current_revision
+        - next_action
+        - allowed_actions
+        - is_simulation
+        - updated_at
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/ApplicationStatus" }
+        version: { type: integer, minimum: 1 }
+        current_revision: { type: integer, minimum: 0 }
+        next_action: { type: string }
+        allowed_actions:
+          type: array
+          items: { $ref: "#/components/schemas/AllowedAction" }
+        is_simulation: { type: boolean }
+        updated_at: { type: string, format: date-time }
+        product_code: { $ref: "#/components/schemas/ProductCode" }
+        draft_fields: { $ref: "#/components/schemas/DraftFields" }
+    ApplicationList:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ClientApplication" }
+        next_cursor:
+          type: string
+          nullable: true
+    BankApplication:
+      type: object
+      description: Отдельная банковская схема; не отдавать клиенту
+      required: [id, status, version, allowed_actions, is_simulation]
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/ApplicationStatus" }
+        version: { type: integer }
+        allowed_actions:
+          type: array
+          items: { $ref: "#/components/schemas/AllowedAction" }
+        is_simulation: { type: boolean }
+        active_run_id:
+          type: string
+          format: uuid
+          nullable: true
+        risk_summary:
+          type: object
+          nullable: true
+          additionalProperties: true
+        checks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        revisions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        audit:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    OfficerDecision:
+      type: object
+      required: [expected_version, run_id, type]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        run_id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [APPROVE_OFFER, REJECT]
+        candidate_hash:
+          type: string
+          description: Обязателен при APPROVE_OFFER
+        reason_code:
+          type: string
+          description: Обязателен при REJECT
+        comment: { type: string }
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, field_errors, request_id]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            field_errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  message: { type: string }
+            request_id: { type: string }

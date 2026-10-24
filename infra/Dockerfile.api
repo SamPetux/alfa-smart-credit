@@ -1,0 +1,12 @@
+# Placeholder: pin digest after first successful build (B01/B10).
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY backend/pyproject.toml /app/backend/pyproject.toml
+COPY backend /app/backend
+COPY contracts /app/contracts
+
+RUN pip install --no-cache-dir -e "/app/backend[dev]"
+
+ENV PYTHONPATH=/app
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

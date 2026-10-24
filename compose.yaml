@@ -1,0 +1,61 @@
+# Каркас Compose (B08). Образы/теги зафиксируем после первой успешной сборки.
+# Web публикуется на 127.0.0.1:8080; БД наружу не публикуется.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: alfa
+      POSTGRES_PASSWORD: alfa
+      POSTGRES_DB: alfa_credit
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alfa -d alfa_credit"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
+      DEMO_MODE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Порт наружу только через proxy
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    command: ["python", "-m", "backend.app.jobs.worker"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
+      DEMO_MODE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.web
+    depends_on:
+      - api
+
+  proxy:
+    image: caddy:2
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./infra/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - web
+      - api
+
+volumes:
+  pgdata:
