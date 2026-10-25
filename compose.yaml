@@ -41,6 +41,9 @@ services:
       APP_ENV: local
       SESSION_SECRET: change-me-demo-only
       COOKIE_SECURE: "false"
+      DOCUMENTS_DIR: /data/documents
+    volumes:
+      - documents:/data/documents
     depends_on:
       init:
         condition: service_completed_successfully
@@ -55,6 +58,13 @@ services:
       DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
       DEMO_MODE: "true"
       APP_ENV: local
+      DOCUMENTS_DIR: /data/documents
+      JOB_MAX_ATTEMPTS: "3"
+      JOB_LEASE_SECONDS: "60"
+      WORKER_POLL_SECONDS: "2"
+    volumes:
+      - documents:/data/documents
+      - ./fixtures:/app/fixtures:ro
     depends_on:
       init:
         condition: service_completed_successfully
@@ -78,3 +88,4 @@ services:
 
 volumes:
   pgdata:
+  documents:

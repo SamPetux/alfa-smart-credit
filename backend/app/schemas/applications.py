@@ -18,6 +18,8 @@ class DraftFields(ApiModel):
     monthly_revenue: MoneyStr | None = None
     monthly_operating_costs: MoneyStr | None = None
     declared_monthly_debt_payments: MoneyStr | None = None
+    # Только для локальных симуляторов (B05); не кредитный признак
+    demo_scenario: str | None = None
 
 
 class DraftPatch(ApiModel):

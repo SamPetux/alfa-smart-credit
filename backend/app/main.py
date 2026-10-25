@@ -1,11 +1,13 @@
-"""FastAPI entrypoint: health + auth/demo (B03)."""
+"""FastAPI entrypoint: health + auth/demo + applications (B03–B04)."""
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from backend.app.api.v1.router import api_router
+from backend.app.applications.errors import ApiError
 from backend.app.core.config import get_settings
 from backend.app.db.session import get_engine
 
@@ -17,6 +19,14 @@ app = FastAPI(
 )
 
 app.include_router(api_router)
+
+
+@app.exception_handler(ApiError)
+async def api_error_handler(_request: Request, exc: ApiError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.envelope.model_dump(mode="json"),
+    )
 
 
 @app.get("/api/v1/health/live")

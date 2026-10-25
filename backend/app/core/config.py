@@ -31,6 +31,11 @@ class Settings:
     cookie_name: str
     csrf_header: str
     app_env: str
+    documents_dir: str
+    job_max_attempts: int
+    job_lease_seconds: int
+    worker_poll_seconds: float
+    fixtures_root: str
 
 
 @lru_cache
@@ -47,4 +52,9 @@ def get_settings() -> Settings:
         cookie_name=os.environ.get("SESSION_COOKIE_NAME", "asc_session"),
         csrf_header=os.environ.get("CSRF_HEADER", "X-CSRF-Token"),
         app_env=os.environ.get("APP_ENV", "local"),
+        documents_dir=os.environ.get("DOCUMENTS_DIR", "data/documents"),
+        job_max_attempts=_env_int("JOB_MAX_ATTEMPTS", 3),
+        job_lease_seconds=_env_int("JOB_LEASE_SECONDS", 60),
+        worker_poll_seconds=float(os.environ.get("WORKER_POLL_SECONDS", "2")),
+        fixtures_root=os.environ.get("FIXTURES_ROOT", ""),
     )

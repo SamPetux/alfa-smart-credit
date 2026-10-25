@@ -99,7 +99,16 @@ def require_role(*roles: Role):
     return _dep
 
 
+def require_client_csrf(auth: Annotated[AuthContext, Depends(require_csrf)]) -> AuthContext:
+    if auth.user.role != Role.CLIENT.value:
+        raise _forbidden("Client role required")
+    if auth.company_id is None:
+        raise _forbidden("Client must belong to a company")
+    return auth
+
+
 RequireAuth = Annotated[AuthContext, Depends(require_auth)]
 RequireCsrf = Annotated[AuthContext, Depends(require_csrf)]
 RequireClient = Annotated[AuthContext, Depends(require_role(Role.CLIENT))]
 RequireOfficer = Annotated[AuthContext, Depends(require_role(Role.OFFICER))]
+RequireClientCsrf = Annotated[AuthContext, Depends(require_client_csrf)]

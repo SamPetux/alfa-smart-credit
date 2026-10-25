@@ -30,6 +30,7 @@ pgdata/
 *.sqlite3
 storage/
 documents_volume/
+data/
 
 # Local IDE noise (skills under .agents/ or .cursor/skills stay tracked if committed)
 *.swp
