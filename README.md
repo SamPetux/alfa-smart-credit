@@ -15,6 +15,11 @@
 | [docs/risk.md](./docs/risk.md) | Реализация score/policy/affordability |
 | [docs/data-model.md](./docs/data-model.md) | ORM и миграции (B02) |
 | [docs/demo-accounts.md](./docs/demo-accounts.md) | Демо-профили и тестовые пароли (B03) |
+| [docs/product.md](./docs/product.md) | JTBD, границы P0/P1 и критерии успеха (D01/D02) |
+| [docs/backlog.md](./docs/backlog.md) | Задания, зависимости и блокеры (D04) |
+| [docs/requirements.md](./docs/requirements.md) | Фактическое покрытие R01–R18 и пробелы (D05) |
+| [docs/backend-development.md](./docs/backend-development.md) | Backend-проверки, конфигурация и ограничения запуска (часть D06) |
+| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Предварительный реестр зависимостей; комплект лицензий ещё не завершён |
 
 ## Стек (зафиксировать версии после первой сборки)
 
@@ -41,7 +46,9 @@ docker compose up --build
 ```
 
 Compose: `db` → `init` (alembic + idempotent seed) → `api` / `worker` → `web` → `proxy`.  
-Frontend — placeholder до Fxx Игоря. Worker — stub до B05 (процесс живёт, jobs не claim-ит).
+Frontend — заглушка до Fxx Игоря. Worker обрабатывает jobs: симуляторы + risk, успешный путь до MANUAL_REVIEW. Банковские решения и завершение полного E01 ещё отсутствуют.
+
+Для этой облачной среды нужны дополнительные настройки CA и прав файлов, сохранённые вне Git при onboarding. Штатный запуск без них здесь не подтверждён; подробности и проверенные команды — в [инструкции backend](./docs/backend-development.md).
 
 Локально без Docker:
 
