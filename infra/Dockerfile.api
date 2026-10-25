@@ -1,12 +1,20 @@
-# Placeholder: pin digest after first successful build (B01/B10).
-FROM python:3.12-slim
+# Backend + worker. Pin digest after first successful CI build (B10).
+FROM python:3.12.8-slim-bookworm
 
 WORKDIR /app
+
+RUN useradd --create-home --uid 10001 appuser
+
 COPY backend/pyproject.toml /app/backend/pyproject.toml
 COPY backend /app/backend
 COPY contracts /app/contracts
+COPY fixtures /app/fixtures
+COPY infra/scripts /app/infra/scripts
 
-RUN pip install --no-cache-dir -e "/app/backend[dev]"
+RUN pip install --no-cache-dir -e "/app/backend[dev]" \
+    && chmod +x /app/infra/scripts/init-db.sh
 
 ENV PYTHONPATH=/app
+USER appuser
+
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

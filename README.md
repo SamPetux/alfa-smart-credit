@@ -2,7 +2,7 @@
 
 Умный кредитный кабинет — учебный веб-прототип (клиент + сотрудник банка) на синтетических данных.
 
-> Это каркас G0: структура, контракты и state machine. Полный сценарий ещё не реализован.
+> Блок 1 (B01–B03): каркас, схема БД, демо-сессии. Полный кредитный сценарий (B04+) ещё не реализован.
 
 ## Документы
 
@@ -12,6 +12,9 @@
 | [docs/planning/](./docs/planning/) | Задание, архитектура, роли |
 | [docs/adr/001-modular-monolith.md](./docs/adr/001-modular-monolith.md) | Выбор стека |
 | [contracts/](./contracts/) | API v1, статусы, risk-v1, policy-v1 |
+| [docs/risk.md](./docs/risk.md) | Реализация score/policy/affordability |
+| [docs/data-model.md](./docs/data-model.md) | ORM и миграции (B02) |
+| [docs/demo-accounts.md](./docs/demo-accounts.md) | Демо-профили и тестовые пароли (B03) |
 
 ## Стек (зафиксировать версии после первой сборки)
 
@@ -30,14 +33,31 @@
 
 Python-зеркало: `backend/app/schemas/`, переходы: `backend/app/workflow/transitions.py`.
 
-## Запуск (после B08)
+## Запуск
 
 ```bash
 docker compose up --build
-# UI/API: http://127.0.0.1:8080
+# UI/API: http://127.0.0.1:8080  (proxy → api + web placeholder)
 ```
 
-Сейчас Compose и Dockerfile — каркас; миграции/seed и frontend build ещё не подключены.
+Compose: `db` → `init` (alembic + idempotent seed) → `api` / `worker` → `web` → `proxy`.  
+Frontend — placeholder до Fxx Игоря. Worker — stub до B05 (процесс живёт, jobs не claim-ит).
+
+Локально без Docker:
+
+```bash
+export DATABASE_URL=postgresql+psycopg://…/alfa_credit
+cd backend && alembic upgrade head && PYTHONPATH=.. python -m backend.app.identity.seed
+PYTHONPATH=.. uvicorn backend.app.main:app --reload
+# аккаунты: docs/demo-accounts.md
+```
+
+Тесты:
+
+```bash
+cd backend && PYTHONPATH=.. pytest tests/unit -q
+DATABASE_URL=… PYTHONPATH=.. pytest tests/integration -q
+```
 
 ## Роли
 

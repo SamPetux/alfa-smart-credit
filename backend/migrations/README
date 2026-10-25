@@ -1,0 +1,8 @@
+Alembic-миграции схемы PostgreSQL. Владелец: Олег.
+
+Запуск из корня репозитория:
+
+```bash
+export DATABASE_URL=postgresql+psycopg://alfa:alfa@127.0.0.1:5432/alfa_credit
+cd backend && alembic upgrade head
+```

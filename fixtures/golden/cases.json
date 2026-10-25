@@ -1,0 +1,77 @@
+{
+  "schema_version": "golden-v1",
+  "policy_version": "policy-v1",
+  "model_version": "score-v1",
+  "note": "Ожидания независимы от UI. Результат всегда считает evaluate().",
+  "cases": [
+    {
+      "id": "G01",
+      "expect": {
+        "recommendation": "OFFER",
+        "risk_score": 100,
+        "risk_band": "A",
+        "candidate_amount": "1000000.00",
+        "is_alternative": false
+      }
+    },
+    {
+      "id": "G02",
+      "expect": {
+        "recommendation": "OFFER",
+        "risk_score": 100,
+        "risk_band": "A",
+        "candidate_amount": "641000.00",
+        "is_alternative": true,
+        "offered_payment": "59994.00",
+        "reason_codes": ["LOWER_AMOUNT_REQUIRED"]
+      }
+    },
+    {
+      "id": "G03",
+      "expect": {
+        "recommendation": "NEEDS_INFO",
+        "reason_codes": ["DEBT_DATA_MISMATCH"],
+        "requested_fields": ["declared_monthly_debt_payments"]
+      }
+    },
+    {
+      "id": "G04",
+      "expect": {
+        "recommendation": "REJECT",
+        "reason_codes": ["OVERDUE_LIMIT"],
+        "risk_score": null
+      }
+    },
+    {
+      "id": "G05",
+      "expect": {
+        "recommendation": "REJECT",
+        "risk_score": 90,
+        "risk_band": "A",
+        "reason_codes": ["AFFORDABILITY_BELOW_MINIMUM"]
+      }
+    },
+    {
+      "id": "G06",
+      "expect": {
+        "evaluate_called": false,
+        "worker_route": "SOURCE_TIMEOUT"
+      }
+    },
+    {
+      "id": "G07",
+      "expect": {
+        "risk_score": 70,
+        "risk_band": "B",
+        "annual_rate": "0.26"
+      }
+    },
+    {
+      "id": "G08",
+      "expect": {
+        "evaluate_called": false,
+        "worker_route": "SOURCE_INCOMPLETE"
+      }
+    }
+  ]
+}

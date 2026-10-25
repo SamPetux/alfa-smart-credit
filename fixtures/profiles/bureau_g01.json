@@ -1,0 +1,8 @@
+{
+  "scenario_id": "BKI-G01",
+  "is_synthetic": true,
+  "monthly_debt_payments": "100000.00",
+  "max_overdue_days_12m": 0,
+  "observed_at": "2026-10-24T00:00:00Z",
+  "outcome": "success"
+}

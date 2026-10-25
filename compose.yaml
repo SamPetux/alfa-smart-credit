@@ -1,9 +1,9 @@
-# Каркас Compose (B08). Образы/теги зафиксируем после первой успешной сборки.
-# Web публикуется на 127.0.0.1:8080; БД наружу не публикуется.
+# Compose: db → init (migrate+seed) → api/worker → web → proxy :8080
+# Образы pinned по major.minor; digests — после первой успешной сборки на CI (B10).
 
 services:
   db:
-    image: postgres:16
+    image: postgres:16.6
     environment:
       POSTGRES_USER: alfa
       POSTGRES_PASSWORD: alfa
@@ -15,6 +15,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    # БД наружу не публикуем
+
+  init:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
+      DEMO_MODE: "true"
+      APP_ENV: local
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "/app/infra/scripts/init-db.sh"]
+    restart: "no"
 
   api:
     build:
@@ -23,9 +38,12 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
       DEMO_MODE: "true"
+      APP_ENV: local
+      SESSION_SECRET: change-me-demo-only
+      COOKIE_SECURE: "false"
     depends_on:
-      db:
-        condition: service_healthy
+      init:
+        condition: service_completed_successfully
     # Порт наружу только через proxy
 
   worker:
@@ -36,9 +54,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://alfa:alfa@db:5432/alfa_credit
       DEMO_MODE: "true"
+      APP_ENV: local
     depends_on:
-      db:
-        condition: service_healthy
+      init:
+        condition: service_completed_successfully
 
   web:
     build:
@@ -48,7 +67,7 @@ services:
       - api
 
   proxy:
-    image: caddy:2
+    image: caddy:2.8.4
     ports:
       - "127.0.0.1:8080:80"
     volumes:

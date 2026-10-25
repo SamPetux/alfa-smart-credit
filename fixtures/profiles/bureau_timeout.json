@@ -1,0 +1,6 @@
+{
+  "scenario_id": "BKI-TIMEOUT",
+  "is_synthetic": true,
+  "outcome": "timeout",
+  "observed_at": "2026-10-24T00:00:00Z"
+}
