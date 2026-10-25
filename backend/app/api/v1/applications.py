@@ -8,10 +8,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, File, Form, Header, Response, UploadFile, status
 
+from sqlalchemy import select
+
+from backend.app.applications import officer as bank_actions
 from backend.app.applications import service as apps
 from backend.app.applications.errors import ApiError
 from backend.app.applications.idempotency import body_hash, lookup_idempotency, store_idempotency
 from backend.app.applications.projections import to_client_application
+from backend.app.db.models import InfoRequest
 from backend.app.documents.storage import store_upload
 from backend.app.identity.deps import DbSession, RequireAuth, RequireClientCsrf
 from backend.app.schemas.applications import (
@@ -19,6 +23,8 @@ from backend.app.schemas.applications import (
     ClientApplication,
     CreateApplicationRequest,
     DraftPatch,
+    InfoRequestOut,
+    ResubmitRequest,
 )
 from backend.app.schemas.common import VersionedCommand
 from backend.app.schemas.enums import Role
@@ -213,6 +219,79 @@ def submit_application(
         app=app,
         actor_id=auth.user.id,
         expected_version=body.expected_version,
+    )
+    payload = result.model_dump(mode="json")
+    store_idempotency(
+        db,
+        actor_id=auth.user.id,
+        command_scope=scope,
+        key=idempotency_key,
+        expected_body_hash=digest,
+        response_status=202,
+        response_json=payload,
+    )
+    return result
+
+
+@router.get("/{application_id}/info-request")
+def get_info_request(
+    application_id: UUID,
+    db: DbSession,
+    auth: RequireAuth,
+) -> InfoRequestOut | None:
+    company_id = _require_client_company(auth)
+    apps.get_owned_application(db, application_id, company_id=company_id)
+    row = db.scalar(
+        select(InfoRequest).where(
+            InfoRequest.application_id == application_id,
+            InfoRequest.status == "OPEN",
+        )
+    )
+    if row is None:
+        return None
+    return InfoRequestOut(
+        id=row.id,
+        fields=list(row.fields_json or []),
+        document_kinds=list(row.document_kinds_json or []),
+        message=row.message,
+        status=row.status,
+    )
+
+
+@router.post(
+    "/{application_id}/resubmit",
+    response_model=ClientApplication,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def resubmit_application(
+    application_id: UUID,
+    body: ResubmitRequest,
+    response: Response,
+    db: DbSession,
+    auth: RequireClientCsrf,
+    idempotency_key: IdempotencyKey,
+) -> ClientApplication:
+    assert auth.company_id is not None
+    scope = f"resubmit:{application_id}"
+    digest = body_hash(body.model_dump(mode="json"))
+    existing = lookup_idempotency(
+        db,
+        actor_id=auth.user.id,
+        command_scope=scope,
+        key=idempotency_key,
+        expected_body_hash=digest,
+    )
+    if existing is not None:
+        response.status_code = existing.response_status
+        return ClientApplication.model_validate(existing.response_json)
+
+    app = apps.get_owned_application(db, application_id, company_id=auth.company_id)
+    result = bank_actions.resubmit_after_info(
+        db,
+        app=app,
+        actor_id=auth.user.id,
+        expected_version=body.expected_version,
+        info_request_id=body.info_request_id,
     )
     payload = result.model_dump(mode="json")
     store_idempotency(

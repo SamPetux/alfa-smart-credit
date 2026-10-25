@@ -164,20 +164,23 @@ def patch_draft(
     expected_version: int,
     draft_fields: DraftFields,
 ) -> ClientApplication:
-    if app.status != ApplicationStatus.DRAFT.value:
-        raise ApiError(409, "INVALID_STATE", "Редактирование черновика доступно только в DRAFT")
     if app.version != expected_version:
         raise ApiError(
             409,
             "VERSION_CONFLICT",
             "Заявка уже изменилась. Обновите данные перед действием.",
         )
+    status = ApplicationStatus(app.status)
+    if status == ApplicationStatus.DRAFT:
+        command = WorkflowCommand.SAVE
+        action = "SAVE_DRAFT"
+    elif status == ApplicationStatus.NEEDS_INFO:
+        command = WorkflowCommand.SAVE_SUPPLEMENT
+        action = "SAVE_SUPPLEMENT"
+    else:
+        raise ApiError(409, "INVALID_STATE", "Редактирование недоступно в текущем статусе")
     try:
-        next_status(
-            ApplicationStatus.DRAFT,
-            WorkflowCommand.SAVE,
-            actor=Role.CLIENT,
-        )
+        next_status(status, command, actor=Role.CLIENT)
     except IllegalTransitionError as exc:
         raise ApiError(409, "INVALID_STATE", str(exc)) from exc
 
@@ -188,9 +191,9 @@ def patch_draft(
         AuditEvent(
             application_id=app.id,
             actor_id=actor_id,
-            action="SAVE_DRAFT",
-            from_status=ApplicationStatus.DRAFT.value,
-            to_status=ApplicationStatus.DRAFT.value,
+            action=action,
+            from_status=status.value,
+            to_status=status.value,
             revision_no=app.current_revision,
             metadata_json={},
         )

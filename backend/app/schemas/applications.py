@@ -85,10 +85,31 @@ class BankApplication(ApiModel):
     id: UUID
     status: ApplicationStatus
     version: int
+    current_revision: int = 0
     allowed_actions: list[AllowedAction]
     is_simulation: bool = True
     active_run_id: UUID | None = None
+    next_action: str | None = None
+    product_code: ProductCode | None = None
+    company_id: UUID | None = None
+    company_name: str | None = None
+    demo_registration_id: str | None = None
+    draft_fields: DraftFields | None = None
     risk_summary: dict | None = None
     checks: list[dict] = Field(default_factory=list)
     revisions: list[dict] = Field(default_factory=list)
     audit: list[dict] = Field(default_factory=list)
+    updated_at: datetime | None = None
+
+
+class BankApplicationList(ApiModel):
+    items: list[BankApplication]
+    next_cursor: str | None = None
+
+
+class InfoRequestOut(ApiModel):
+    id: UUID
+    fields: list[str]
+    document_kinds: list[str]
+    message: str
+    status: str
