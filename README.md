@@ -2,7 +2,8 @@
 
 Умный кредитный кабинет — учебный веб-прототип (клиент + сотрудник банка) на синтетических данных.
 
-> До B06: черновик → worker → MANUAL_REVIEW → уточнение/approve/reject. B07 (accept/sign) ещё нет.
+> Backend до B06: черновик → worker → MANUAL_REVIEW → уточнение / approve / reject.  
+> Ещё нет: B07 (accept / sign / имитация выдачи), полный UI Игоря и полный E01.
 
 ## Документы
 
@@ -46,9 +47,9 @@ docker compose up --build
 ```
 
 Compose: `db` → `init` (alembic + idempotent seed) → `api` / `worker` → `web` → `proxy`.  
-Frontend — заглушка до Fxx Игоря. Worker обрабатывает jobs: симуляторы + risk, успешный путь до MANUAL_REVIEW. Банковские решения и завершение полного E01 ещё отсутствуют.
+Frontend — заглушка до Fxx Игоря. Worker: симуляторы + risk → MANUAL_REVIEW. Банковские API B06 (досье, request-info, decision, retry-checks) и клиентский resubmit есть. Accept/sign/выдача (B07) и полный E01 ещё нет.
 
-Для этой облачной среды нужны дополнительные настройки CA и прав файлов, сохранённые вне Git при onboarding. Штатный запуск без них здесь не подтверждён; подробности и проверенные команды — в [инструкции backend](./docs/backend-development.md).
+Для облачной среды могут понадобиться доп. настройки CA и прав файлов вне Git; штатный запуск без них не обещаем. Подробности — в [инструкции backend](./docs/backend-development.md).
 
 Локально без Docker:
 
