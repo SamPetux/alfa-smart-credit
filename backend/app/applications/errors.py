@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from backend.app.core.request_context import get_request_id
 from backend.app.schemas.common import ErrorBody, ErrorEnvelope, FieldError
 
 
@@ -18,12 +19,13 @@ class ApiError(Exception):
         request_id: str | None = None,
     ) -> None:
         self.status_code = status_code
+        rid = request_id or get_request_id() or f"req-{uuid4().hex[:12]}"
         self.envelope = ErrorEnvelope(
             error=ErrorBody(
                 code=code,
                 message=message,
                 field_errors=field_errors or [],
-                request_id=request_id or f"req-{uuid4().hex[:12]}",
+                request_id=rid,
             )
         )
         super().__init__(message)

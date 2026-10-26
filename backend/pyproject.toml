@@ -19,6 +19,7 @@ dev = [
   "pytest==8.4.2",
   "httpx==0.28.1",
   "ruff==0.17.2",
+  "PyYAML==6.0.3",
 ]
 
 [build-system]
@@ -36,3 +37,8 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
+# CI (B10): сначала критичные E/F; расширять постепенно.
+select = ["E", "F"]
+ignore = ["E501"]

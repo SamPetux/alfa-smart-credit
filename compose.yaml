@@ -1,9 +1,11 @@
 # Compose: db → init (migrate+seed) → api/worker → web → proxy :8080
-# Образы pinned по major.minor; digests — после первой успешной сборки на CI (B10).
+# Один origin UI+API. БД наружу не публикуется. Volumes: pgdata, documents.
+# Digests зафиксированы после успешного compose smoke на macOS arm64 (2026-10-26).
+# linux/amd64 в CI может резолвить тот же manifest list; при расхождении обновить docs/release.md.
 
 services:
   db:
-    image: postgres:16.6
+    image: postgres:16.6@sha256:557fea37a744d5f4c8faab304b0a90858b53ab119735a88c131fd19dab802f36
     environment:
       POSTGRES_USER: alfa
       POSTGRES_PASSWORD: alfa
@@ -15,6 +17,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 5s
     # БД наружу не публикуем
 
   init:
@@ -42,12 +45,25 @@ services:
       SESSION_SECRET: change-me-demo-only
       COOKIE_SECURE: "false"
       DOCUMENTS_DIR: /data/documents
+      LOG_LEVEL: INFO
     volumes:
       - documents:/data/documents
     depends_on:
       init:
         condition: service_completed_successfully
-    # Порт наружу только через proxy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=3)",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
 
   worker:
     build:
@@ -59,6 +75,7 @@ services:
       DEMO_MODE: "true"
       APP_ENV: local
       DOCUMENTS_DIR: /data/documents
+      FIXTURES_ROOT: /app/fixtures
       JOB_MAX_ATTEMPTS: "3"
       JOB_LEASE_SECONDS: "60"
       WORKER_POLL_SECONDS: "2"
@@ -68,23 +85,29 @@ services:
     depends_on:
       init:
         condition: service_completed_successfully
+    restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: infra/Dockerfile.web
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
   proxy:
-    image: caddy:2.8.4
+    image: caddy:2.8.4@sha256:226d1f059b75399fe19182893c7184591c07b97afc8dfcf44eeb80c9a77a530f
     ports:
       - "127.0.0.1:8080:80"
     volumes:
       - ./infra/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
-      - web
-      - api
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   pgdata:

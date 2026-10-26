@@ -498,6 +498,22 @@ paths:
       responses:
         "202":
           description: Job requeued; status remains SIGNED until complete
+  /applications/{id}/explain:
+    get:
+      tags: [applications]
+      summary: Шаблонное объяснение статуса и причин (без LLM)
+      operationId: explainApplication
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+        - name: topic
+          in: query
+          schema:
+            type: string
+            enum: [general, why, next, amount]
+            default: general
+      responses:
+        "200":
+          description: Template explanation payload
   /health/live:
     get:
       tags: [health]

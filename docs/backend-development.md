@@ -68,19 +68,31 @@ docker compose exec -T db dropdb -U alfa "$test_db"
 
 В ходе D06 команда контейнерного pytest выше повторно выполнена на новой временной БД с облачным COMPOSE_FILE: **40 passed, 0 skipped, 1 warning, 3.73 s**. Предупреждение: Starlette TestClient сообщает о deprecated использовании httpx; зависимости в этой задаче не менялись. Созданная тестовая БД удалена после проверки. Исходная база кода — `72ba781`, среда Linux/amd64, PostgreSQL 16.6. Это подтверждение текущего запуска, не независимого clean clone.
 
-## Остановка и диагностика
+## Остановка и диагностика (troubleshooting)
 
-`docker compose stop` останавливает сервисы; `docker compose start` возобновляет существующие контейнеры. `docker compose down` удаляет контейнеры/сеть, сохраняя именованные volumes. Обычная остановка не должна сбрасывать заявки. Тест восстановления после аварии — отдельная задача QA.
+`docker compose stop` останавливает сервисы; `docker compose start` возобновляет существующие контейнеры. `docker compose down` удаляет контейнеры/сеть, сохраняя именованные volumes. Обычная остановка не должна сбрасывать заявки. Тест восстановления после аварии — отдельная задача QA (Q04).
 
-- init не завершился: смотреть logs init и db, проверить доступность БД и миграции; не сбрасывать данные ради устранения ошибки.
-- TLS-ошибка сборки в облаке: использовать доверенный системный CA и сохранённый setup, не trusted-host и не отключение проверки.
-- Permission denied в контейнере: проверить владельца файлов и каталога документов; в облаке использовать override. Не запускать всё приложение от root как постоянный обход.
-- 403 от внутреннего proxy: проверить маршрут Caddy к api/web и исключение этих внутренних имён из HTTP proxy; не расширять внешнюю сеть без причины.
-- 401/403 API: проверить актуальную сессию/роль/CSRF; 409 — перечитать version, не подтверждать изменённую заявку автоматически.
-- Проверка не завершается: смотреть worker/job, технический сбой не считать кредитным отказом.
+| Симптом | Что смотреть |
+|---|---|
+| init exit ≠ 0 | `docker compose logs init db`; DATABASE_URL; не делать `down -v` ради «починить» |
+| ready 503 | миграция/`alembic_version`, доступ api→db |
+| TLS/CA при сборке в облаке | доверенный системный CA; не `--trusted-host` и не отключение проверки |
+| Permission denied на documents | владелец volume/`DOCUMENTS_DIR`; образ создаёт `/data/documents` под appuser |
+| 403 proxy / CORS | Caddyfile: `/api/*` → api; один origin 8080 |
+| 401/403 API | сессия, роль, CSRF; чужая company → 404/403 |
+| 409 VERSION_CONFLICT / STALE_RUN | перечитать заявку; не форсить decision |
+| Заявка зависла в CHECKING | `jobs` state/attempts/`last_error`; worker logs; lease reclaim |
+| SIGNED без COMPLETED | failed `simulate_disbursement`; officer `retry-disbursement` |
+| Demo 404 | `DEMO_MODE=false` — ожидаемо; использовать `/auth/login` |
+| OpenAPI CI red | `python scripts/check_openapi_contract.py` |
 
-Разрушительный сброс demo не нужен для обычной разработки. Команда `docker compose down -v` удаляет БД и документы текущего Compose project; выполнять её только после явного решения удалить именно эти синтетические данные. В рамках этой работы сброс не выполнялся.
+Разрушительный сброс: `docker compose down -v` удаляет БД и документы project — только после явного решения.
 
-## Что ещё нужно для D06
+## Платформы (B11)
 
-Полный E01 после B06/B07/Fxx; clean clone/Q05; независимые замеры времени и ресурсов; API-коллекция/Q06; полный набор лицензий и уведомлений; проверка технических разделов Олегом. Доступные CPU/RAM облачной машины не являются измеренными требованиями приложения.
+Зафиксировано при разработке backend: **macOS arm64**, локальный PostgreSQL 16, pytest unit/integration.  
+GitHub Actions CI: **linux/amd64**. Compose smoke на agent-хосте часто без Docker. **arm64-контейнеры и второе окружение не прогнаны** — не заявлять multi-arch. Q05 — независимый замер.
+
+## Что ещё нужно для D06 / сдачи
+
+Полный E01 с UI; clean clone/Q05; digests образов; API-коллекция/Q06; полный notices; сданный tag без rewrite. Не production-ready.

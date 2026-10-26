@@ -147,6 +147,52 @@ def decide_application(
 
 
 @router.post(
+    "/{application_id}/retry-disbursement",
+    response_model=BankApplication,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_disbursement(
+    application_id: UUID,
+    body: VersionedCommand,
+    response: Response,
+    db: DbSession,
+    auth: RequireOfficerCsrf,
+    idempotency_key: IdempotencyKey,
+) -> BankApplication:
+    scope = f"retry_disbursement:{application_id}"
+    digest = body_hash(body.model_dump(mode="json"))
+    existing = lookup_idempotency(
+        db,
+        actor_id=auth.user.id,
+        command_scope=scope,
+        key=idempotency_key,
+        expected_body_hash=digest,
+    )
+    if existing is not None:
+        response.status_code = existing.response_status
+        return BankApplication.model_validate(existing.response_json)
+
+    app = bank.get_application(db, application_id)
+    result = bank.retry_disbursement(
+        db,
+        app=app,
+        officer_id=auth.user.id,
+        expected_version=body.expected_version,
+    )
+    payload = result.model_dump(mode="json")
+    store_idempotency(
+        db,
+        actor_id=auth.user.id,
+        command_scope=scope,
+        key=idempotency_key,
+        expected_body_hash=digest,
+        response_status=202,
+        response_json=payload,
+    )
+    return result
+
+
+@router.post(
     "/{application_id}/retry-checks",
     response_model=BankApplication,
     status_code=status.HTTP_202_ACCEPTED,

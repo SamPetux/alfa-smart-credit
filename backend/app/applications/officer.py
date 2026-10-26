@@ -28,6 +28,7 @@ from backend.app.db.models import (
     AuditEvent,
     Company,
     Decision,
+    DisbursementSimulation,
     EvaluationRun,
     InfoRequest,
     IntegrationCheck,
@@ -130,6 +131,28 @@ def build_bank_dossier(session: Session, app: Application) -> BankApplication:
         ).all()
     ]
     status = ApplicationStatus(app.status)
+    disbursement_retry = False
+    if status == ApplicationStatus.SIGNED:
+        has_disbursement = (
+            session.scalar(
+                select(DisbursementSimulation.id).where(
+                    DisbursementSimulation.application_id == app.id
+                )
+            )
+            is not None
+        )
+        has_failed_job = (
+            session.scalar(
+                select(Job.id).where(
+                    Job.application_id == app.id,
+                    Job.kind == "simulate_disbursement",
+                    Job.state == "failed",
+                )
+            )
+            is not None
+        )
+        disbursement_retry = has_failed_job and not has_disbursement
+
     return to_bank_application(
         app,
         product=product,
@@ -138,7 +161,11 @@ def build_bank_dossier(session: Session, app: Application) -> BankApplication:
         checks=checks,
         revisions=revisions,
         audit=audit,
-        allowed=allowed_actions_for_officer(status, risk_summary),
+        allowed=allowed_actions_for_officer(
+            status,
+            risk_summary,
+            disbursement_retry_available=disbursement_retry,
+        ),
         next_action=NEXT_ACTION[status],
     )
 
@@ -385,6 +412,84 @@ def retry_checks(
             to_status=new_status.value,
             revision_no=app.current_revision,
             metadata_json={"run_id": str(run.id), "job_id": str(job.id)},
+        )
+    )
+    session.flush()
+    return build_bank_dossier(session, app)
+
+
+def retry_disbursement(
+    session: Session,
+    *,
+    app: Application,
+    officer_id: UUID,
+    expected_version: int,
+) -> BankApplication:
+    """Повторить имитацию выдачи при SIGNED и failed job. Статус остаётся SIGNED."""
+    if app.version != expected_version:
+        raise ApiError(
+            409,
+            "VERSION_CONFLICT",
+            "Заявка уже изменилась. Обновите данные перед действием.",
+        )
+    if app.status != ApplicationStatus.SIGNED.value:
+        raise ApiError(
+            409,
+            "INVALID_STATE",
+            "Повтор выдачи доступен только в статусе SIGNED",
+        )
+
+    existing = session.scalar(
+        select(DisbursementSimulation).where(
+            DisbursementSimulation.application_id == app.id
+        )
+    )
+    if existing is not None:
+        raise ApiError(409, "INVALID_STATE", "Имитация выдачи уже завершена")
+
+    failed = session.scalar(
+        select(Job)
+        .where(
+            Job.application_id == app.id,
+            Job.kind == "simulate_disbursement",
+            Job.state == "failed",
+        )
+        .order_by(Job.updated_at.desc())
+        .limit(1)
+    )
+    if failed is None:
+        raise ApiError(409, "INVALID_STATE", "Нет failed job имитации выдачи")
+
+    now = datetime.now(UTC)
+    # Снимаем force_fail при retry, чтобы повтор мог завершиться успешно
+    payload = dict(failed.payload_json or {})
+    payload.pop("force_fail", None)
+
+    job = Job(
+        kind="simulate_disbursement",
+        application_id=app.id,
+        run_id=None,
+        payload_json=payload,
+        state="pending",
+        attempts=0,
+        available_at=now,
+    )
+    session.add(job)
+
+    app.version += 1
+    app.updated_at = now
+    session.add(
+        AuditEvent(
+            application_id=app.id,
+            actor_id=officer_id,
+            action="RETRY_DISBURSEMENT",
+            from_status=app.status,
+            to_status=app.status,
+            revision_no=app.current_revision,
+            metadata_json={
+                "failed_job_id": str(failed.id),
+                "new_job_id": str(job.id),
+            },
         )
     )
     session.flush()

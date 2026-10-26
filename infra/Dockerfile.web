@@ -1,5 +1,7 @@
 # Frontend scaffold. Полный npm build — после lock-файла Игоря (Fxx).
-# Pin node/caddy digests after first successful build (B10).
-FROM caddy:2.8.4-alpine
+FROM caddy:2.8.4-alpine@sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
 
 COPY infra/proxy/web-placeholder.html /usr/share/caddy/index.html
+COPY infra/proxy/Caddyfile.web /etc/caddy/Caddyfile
+
+EXPOSE 80

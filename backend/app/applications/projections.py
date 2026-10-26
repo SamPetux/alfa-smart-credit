@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
 
 from backend.app.db.models import Application, Company, Product
 from backend.app.schemas.applications import BankApplication, ClientApplication, DraftFields
@@ -40,6 +39,8 @@ def allowed_actions_for(status: ApplicationStatus) -> list[AllowedAction]:
 def allowed_actions_for_officer(
     status: ApplicationStatus,
     risk_summary: dict[str, Any] | None,
+    *,
+    disbursement_retry_available: bool = False,
 ) -> list[AllowedAction]:
     actions: list[AllowedAction] = []
     if status == ApplicationStatus.MANUAL_REVIEW:
@@ -49,6 +50,8 @@ def allowed_actions_for_officer(
             actions.append(AllowedAction.APPROVE_OFFER)
     if status == ApplicationStatus.PROCESSING_ERROR:
         actions.append(AllowedAction.RETRY_CHECKS)
+    if status == ApplicationStatus.SIGNED and disbursement_retry_available:
+        actions.append(AllowedAction.RETRY_DISBURSEMENT)
     return actions
 
 

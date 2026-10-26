@@ -1,9 +1,11 @@
-# Backend + worker. Pin digest after first successful CI build (B10).
-FROM python:3.12.8-slim-bookworm
+# Backend + worker. Digest после compose smoke (macOS arm64, 2026-10-26).
+FROM python:3.12.8-slim-bookworm@sha256:2199a62885a12290dc9c5be3ca0681d367576ab7bf037da120e564723292a2f0
 
 WORKDIR /app
 
-RUN useradd --create-home --uid 10001 appuser
+RUN useradd --create-home --uid 10001 appuser \
+    && mkdir -p /data/documents \
+    && chown -R appuser:appuser /data/documents
 
 COPY backend/pyproject.toml /app/backend/pyproject.toml
 COPY backend /app/backend
@@ -12,9 +14,12 @@ COPY fixtures /app/fixtures
 COPY infra/scripts /app/infra/scripts
 
 RUN pip install --no-cache-dir -e "/app/backend[dev]" \
-    && chmod +x /app/infra/scripts/init-db.sh
+    && chmod +x /app/infra/scripts/init-db.sh \
+    && chown -R appuser:appuser /app
 
 ENV PYTHONPATH=/app
+ENV DOCUMENTS_DIR=/data/documents
 USER appuser
 
+EXPOSE 8000
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,7 +1,7 @@
 """Клиентские и банковские схемы заявок (раздельные проекции)."""
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -63,6 +63,24 @@ class SimulateSignRequest(VersionedCommand):
     agreement_id: UUID
     content_hash: str
     consent: Literal[True]
+
+
+class OfferOut(ApiModel):
+    id: UUID
+    status: str
+    revision_no: int
+    terms: dict[str, Any]
+    created_at: datetime
+
+
+class AgreementOut(ApiModel):
+    id: UUID
+    offer_id: UUID
+    content_hash: str
+    accepted_at: datetime
+    signed_at: datetime | None = None
+    is_simulation: bool = True
+    document_text: str = ""
 
 
 class OfficerDecisionRequest(VersionedCommand):
