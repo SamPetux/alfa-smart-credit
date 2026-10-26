@@ -8,6 +8,7 @@ import { Icon } from "../../components/Icon";
 import { KeyValueList, PageHeader, Panel } from "../../components/Layout";
 import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
 import { StatusBadge } from "../../components/StatusBadge";
+import { Stepper } from "../../components/Stepper";
 import { Timeline } from "../../components/Timeline";
 import { formatTime } from "../../shared/dates";
 import { formatAmount } from "../../shared/money";
@@ -190,6 +191,9 @@ export function ApplicationPage() {
           onRetry={() => void application.refetch()}
         />
       ) : null}
+      <section className="panel stepper-panel" aria-label="Путь заявки">
+        <Stepper status={app.status} />
+      </section>
       <div className="card-grid">
         <div className="stack-lg">
           <CurrentStep app={app} product={product} />

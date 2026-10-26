@@ -7,7 +7,7 @@ import { queryKeys } from "../../api/queryClient";
 import { useSession } from "../../api/session";
 import type { DemoProfile } from "../../api/types";
 import { homePathFor } from "../../app/guards";
-import { DemoBanner } from "../../app/AppShell";
+import { BrandMark, DemoBanner } from "../../app/AppShell";
 import { Button, ButtonLink } from "../../components/Button";
 import { Field } from "../../components/Field";
 import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
@@ -26,6 +26,9 @@ function ProfileCard({
   const isOfficer = profile.role === "OFFICER";
   return (
     <li className="profile-card">
+      <span className="profile-avatar" aria-hidden="true">
+        {isOfficer ? "С" : profile.display_name.replace(/^Клиент\s·\s(ООО|ИП)?\s?/, "").slice(0, 1)}
+      </span>
       <div className="stack-tight">
         <h3>{profile.display_name}</h3>
         <p className="small muted">
@@ -36,7 +39,7 @@ function ProfileCard({
       </div>
       <div className="row">
         {isOfficer ? (
-          <Button variant="secondary" busy={pending === "home"} busyLabel="Входим…" onClick={() => onEnter("home")}>
+          <Button variant="dark" busy={pending === "home"} busyLabel="Входим…" onClick={() => onEnter("home")}>
             Открыть очередь
           </Button>
         ) : (
@@ -145,26 +148,43 @@ export function DemoPage() {
         К содержимому
       </a>
       <DemoBanner />
-      <main className="page page-narrow" id="main" tabIndex={-1}>
-        <header className="page-header">
-          <span className="brand">
-            <span className="brand-mark" aria-hidden="true" />
-            <span className="brand-name">Кредитный кабинет</span>
-          </span>
-          <h1>Вход в демонстрационный стенд</h1>
-          <p className="muted">
-            Выберите синтетический профиль. Роль и компания определяются сервером по профилю; при смене профиля
-            данные прежнего пользователя удаляются из браузера.
-          </p>
-        </header>
+      <main id="main" tabIndex={-1}>
+        <section className="hero">
+          <div className="hero-inner">
+            <div className="hero-copy">
+              <BrandMark caption="демонстрационный стенд" />
+              <h1 className="hero-title">Кредит для бизнеса. Заявка за несколько минут</h1>
+              <p className="hero-lead">
+                Выберите синтетический профиль и пройдите весь путь: от заявки и проверки до условий, решения
+                специалиста и имитации подписания.
+              </p>
+              <ul className="hero-points">
+                <li>Условия рассчитывает сервер по учебной политике</li>
+                <li>Решение всегда подтверждает сотрудник банка</li>
+                <li>Реальные деньги не переводятся</li>
+              </ul>
+            </div>
+            <div className="hero-art" aria-hidden="true">
+              <div className="hero-card hero-card-a">
+                <span className="small">Оборотный кредит</span>
+                <strong className="num">до 3 000 000 ₽</strong>
+              </div>
+              <div className="hero-card hero-card-b">
+                <span className="small">Кредит на оборудование</span>
+                <strong className="num">до 5 000 000 ₽</strong>
+              </div>
+              <span className="hero-orb" />
+            </div>
+          </div>
+        </section>
 
-        <div className="stack-lg">
+        <div className="page page-wide stack-lg">
           {meta.data?.privacy_notice ? <Notice tone="warning">{meta.data.privacy_notice}</Notice> : null}
 
           {session ? (
             <Notice title={`Сейчас открыт профиль: ${session.user.display_name}`}>
               <div className="row">
-                <ButtonLink to={homePathFor(session.user.role)} variant="secondary">
+                <ButtonLink to={homePathFor(session.user.role)} variant="dark">
                   Продолжить в этом профиле
                 </ButtonLink>
               </div>

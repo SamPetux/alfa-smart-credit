@@ -1,9 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { createQueryClient } from "../api/queryClient";
 import { SessionProvider } from "../api/session";
 import { ButtonLink } from "../components/Button";
+import { ToastProvider } from "../components/Toasts";
 import { DemoPage } from "../features/demo/DemoPage";
 import { ApplicationPage } from "../features/client/ApplicationPage";
 import { DraftEditorPage } from "../features/client/DraftEditorPage";
@@ -65,9 +67,13 @@ export function App() {
   const [router] = useState(createAppRouter);
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <RouterProvider router={router} />
-      </SessionProvider>
+      <MotionConfig reducedMotion="user">
+        <SessionProvider>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </SessionProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

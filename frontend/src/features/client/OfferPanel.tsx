@@ -9,6 +9,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { KeyValueList, Panel } from "../../components/Layout";
 import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
 import { formatAmount, formatMoney, formatRate } from "../../shared/money";
+import { useToast } from "../../components/Toasts";
 import { isConflict, useApplicationCommandEffects } from "./commandEffects";
 
 const NOT_PROVIDED = "Сервер пока не передаёт";
@@ -17,34 +18,44 @@ const NOT_PROVIDED = "Сервер пока не передаёт";
 export function OfferTerms({ offer, requestedAmount }: { offer: Offer; requestedAmount: string | null | undefined }) {
   const terms = offer.terms;
   return (
-    <KeyValueList
-      items={[
-        {
-          label: "Сумма",
-          value: <strong className="figure">{formatAmount(terms.amount)}</strong>,
-          numeric: true,
-          note: terms.is_alternative && requestedAmount ? `Вы запрашивали ${formatAmount(requestedAmount)}` : undefined,
-        },
-        { label: "Срок", value: terms.term_months ? `${terms.term_months} мес.` : "—", numeric: true },
-        { label: "Ставка", value: `${formatRate(terms.annual_rate)} годовых`, numeric: true },
-        {
-          label: "Ежемесячный платёж",
-          value: terms.monthly_payment ? formatMoney(terms.monthly_payment) : <span className="muted">{NOT_PROVIDED}</span>,
-          numeric: true,
-        },
-        {
-          label: "Сумма всех выплат",
-          value: terms.total_payment ? formatMoney(terms.total_payment) : <span className="muted">{NOT_PROVIDED}</span>,
-          numeric: true,
-        },
-        {
-          label: "Комиссии",
-          value: formatMoney(terms.fees ?? "0.00"),
-          numeric: true,
-          note: "В демонстрационной модели комиссий нет",
-        },
-      ]}
-    />
+    <div className="stack">
+      <div className="offer-card">
+        <span className="offer-label small">Сумма кредита</span>
+        <strong className="offer-amount num">{formatAmount(terms.amount)}</strong>
+        {terms.is_alternative && requestedAmount ? (
+          <span className="offer-note small">Вы запрашивали {formatAmount(requestedAmount)}</span>
+        ) : null}
+        <div className="offer-facts">
+          <div>
+            <span className="small">Срок</span>
+            <strong className="num">{terms.term_months ? `${terms.term_months} мес.` : "—"}</strong>
+          </div>
+          <div>
+            <span className="small">Ставка</span>
+            <strong className="num">{formatRate(terms.annual_rate)} годовых</strong>
+          </div>
+          <div>
+            <span className="small">Комиссии</span>
+            <strong className="num">{formatMoney(terms.fees ?? "0.00")}</strong>
+          </div>
+        </div>
+      </div>
+      <KeyValueList
+        items={[
+          {
+            label: "Ежемесячный платёж",
+            value: terms.monthly_payment ? formatMoney(terms.monthly_payment) : <span className="muted">{NOT_PROVIDED}</span>,
+            numeric: true,
+          },
+          {
+            label: "Сумма всех выплат",
+            value: terms.total_payment ? formatMoney(terms.total_payment) : <span className="muted">{NOT_PROVIDED}</span>,
+            numeric: true,
+            note: "В демонстрационной модели комиссий нет",
+          },
+        ]}
+      />
+    </div>
   );
 }
 
@@ -70,13 +81,20 @@ function AlternativeReason({ id }: { id: string }) {
 
 export function OfferPanel({ app }: { app: ClientApplication }) {
   const effects = useApplicationCommandEffects(app.id);
+  const toast = useToast();
   const [confirmDecline, setConfirmDecline] = useState(false);
   const offer = useQuery({
     queryKey: queryKeys.offer(app.id),
     queryFn: ({ signal }) => api.offer(app.id, { signal }),
   });
 
-  const accept = useCommand((offerId: string, ctx) => api.acceptOffer(app.id, app.version, offerId, ctx), effects);
+  const accept = useCommand((offerId: string, ctx) => api.acceptOffer(app.id, app.version, offerId, ctx), {
+    ...effects,
+    onSuccess: (updated) => {
+      effects.onSuccess(updated);
+      toast("Условия приняты", "Ознакомьтесь с документом и подтвердите подписание.");
+    },
+  });
   const decline = useCommand((offerId: string, ctx) => api.declineOffer(app.id, app.version, offerId, ctx), {
     ...effects,
     onSettled: () => setConfirmDecline(false),

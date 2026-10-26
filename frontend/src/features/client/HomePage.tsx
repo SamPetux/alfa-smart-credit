@@ -5,10 +5,9 @@ import { queryKeys } from "../../api/queryClient";
 import { useSession } from "../../api/session";
 import type { ClientApplication, Product } from "../../api/types";
 import { ButtonLink } from "../../components/Button";
-import { Icon } from "../../components/Icon";
-import { PageHeader, Panel } from "../../components/Layout";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "../../components/States";
 import { StatusBadge } from "../../components/StatusBadge";
+import { Stepper } from "../../components/Stepper";
 import { formatDateTime } from "../../shared/dates";
 import { formatAmount } from "../../shared/money";
 import { productTitle, useProducts } from "./products";
@@ -17,31 +16,35 @@ export function applicationPath(app: Pick<ClientApplication, "id" | "status">): 
   return app.status === "DRAFT" ? `/applications/${app.id}/edit` : `/applications/${app.id}`;
 }
 
-function ApplicationRow({ app, products }: { app: ClientApplication; products: Product[] | undefined }) {
+function ApplicationCard({ app, products }: { app: ClientApplication; products: Product[] | undefined }) {
   const amount = app.draft_fields?.requested_amount ?? null;
   return (
-    <li className="app-row">
-      <div className="app-row-main">
+    <li className="app-card">
+      <div className="app-card-top">
         <Link to={applicationPath(app)} className="app-row-title">
           {productTitle(products, app.product_code)}
         </Link>
-        <span className="small muted">Следующий шаг: {app.next_action}</span>
+        <StatusBadge status={app.status} />
       </div>
-      <span className="app-row-amount num">{amount ? formatAmount(amount) : <span className="muted">сумма не указана</span>}</span>
-      <StatusBadge status={app.status} />
-      <time className="app-row-date small muted num" dateTime={app.updated_at}>
-        {formatDateTime(app.updated_at)}
-      </time>
-      <Icon name="chevron" />
+      <div className="app-card-amount num">
+        {amount ? formatAmount(amount) : <span className="app-card-empty">Сумма не указана</span>}
+      </div>
+      <Stepper status={app.status} compact />
+      <div className="app-card-foot small muted">
+        <span>{app.next_action}</span>
+        <time className="num" dateTime={app.updated_at}>
+          {formatDateTime(app.updated_at)}
+        </time>
+      </div>
     </li>
   );
 }
 
 function ApplicationList({ items, products }: { items: ClientApplication[]; products: Product[] | undefined }) {
   return (
-    <ul className="app-list">
+    <ul className="app-grid">
       {items.map((app) => (
-        <ApplicationRow key={app.id} app={app} products={products} />
+        <ApplicationCard key={app.id} app={app} products={products} />
       ))}
     </ul>
   );
@@ -62,53 +65,67 @@ export function HomePage() {
 
   return (
     <div className="stack-lg">
-      <PageHeader
-        title="Мои заявки"
-        meta={
-          company ? (
-            <>
-              <span>{company.display_name}</span>
-              <span>
-                Демонстрационный идентификатор компании:{" "}
-                <span className="num nowrap">{company.demo_registration_id}</span>
-              </span>
-            </>
-          ) : null
-        }
-        actions={
-          <ButtonLink to="/applications/new" variant="primary">
+      <section className="promo">
+        <div className="promo-copy">
+          <p className="promo-company small">
+            {company ? (
+              <>
+                {company.display_name}, <span className="num">{company.demo_registration_id}</span>
+              </>
+            ) : null}
+          </p>
+          <h1 className="promo-title">Финансирование для вашего бизнеса</h1>
+          <p className="promo-lead">
+            Подайте заявку, следите за каждым этапом и получите рассчитанные условия. Решение подтверждает
+            специалист банка.
+          </p>
+          <ButtonLink to="/applications/new" variant="on-dark" size="large">
             Новая заявка
           </ButtonLink>
-        }
-      />
+        </div>
+        <div className="promo-stats" aria-label="Сводка по заявкам">
+          <div>
+            <span className="promo-stat-value num">{items.length}</span>
+            <span className="small">всего заявок</span>
+          </div>
+          <div>
+            <span className="promo-stat-value num">{needsAction.length}</span>
+            <span className="small">ждут вашего действия</span>
+          </div>
+        </div>
+      </section>
 
       {applications.isPending ? (
-        <Panel title="Заявки">
+        <section className="stack" aria-label="Заявки">
           <LoadingBlock rows={4} label="Загружаем заявки" />
-        </Panel>
+        </section>
       ) : applications.isError ? (
-        <Panel title="Заявки">
-          <ErrorBlock error={applications.error} onRetry={() => void applications.refetch()} />
-        </Panel>
+        <ErrorBlock error={applications.error} onRetry={() => void applications.refetch()} />
       ) : items.length === 0 ? (
-        <Panel title="Заявки">
-          <EmptyBlock action={<ButtonLink to="/applications/new">Создать первую заявку</ButtonLink>}>
-            У компании пока нет заявок. Выберите продукт, заполните сведения и отправьте заявку на проверку.
-          </EmptyBlock>
-        </Panel>
+        <EmptyBlock action={<ButtonLink to="/applications/new" variant="primary">Создать первую заявку</ButtonLink>}>
+          У компании пока нет заявок. Выберите продукт, заполните сведения и отправьте заявку на проверку.
+        </EmptyBlock>
       ) : (
         <>
-          <Panel title="Требуют вашего действия" aside={<span className="small muted num">{needsAction.length}</span>}>
+          <section className="stack" aria-labelledby="due-title">
+            <div className="section-head">
+              <h2 id="due-title">Требуют вашего действия</h2>
+              <span className="tag num">{needsAction.length}</span>
+            </div>
             {needsAction.length ? (
               <ApplicationList items={needsAction} products={products.data} />
             ) : (
-              <p className="muted">Сейчас от вас ничего не требуется. Статусы остальных заявок — ниже.</p>
+              <p className="muted">Сейчас от вас ничего не требуется. Статусы остальных заявок ниже.</p>
             )}
-          </Panel>
+          </section>
           {others.length ? (
-            <Panel title="В работе и завершённые" aside={<span className="small muted num">{others.length}</span>}>
+            <section className="stack" aria-labelledby="rest-title">
+              <div className="section-head">
+                <h2 id="rest-title">В работе и завершённые</h2>
+                <span className="tag num">{others.length}</span>
+              </div>
               <ApplicationList items={others} products={products.data} />
-            </Panel>
+            </section>
           ) : null}
         </>
       )}
