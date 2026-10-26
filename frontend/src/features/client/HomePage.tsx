@@ -85,11 +85,11 @@ export function HomePage() {
         </div>
         <div className="promo-stats" aria-label="Сводка по заявкам">
           <div>
-            <span className="promo-stat-value num">{items.length}</span>
+            <span className="promo-stat-value num">{applications.isSuccess ? items.length : "—"}</span>
             <span className="small">всего заявок</span>
           </div>
           <div>
-            <span className="promo-stat-value num">{needsAction.length}</span>
+            <span className="promo-stat-value num">{applications.isSuccess ? needsAction.length : "—"}</span>
             <span className="small">ждут вашего действия</span>
           </div>
         </div>

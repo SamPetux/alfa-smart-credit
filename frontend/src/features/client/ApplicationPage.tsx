@@ -34,7 +34,9 @@ function Explanation({ id, topic, title }: { id: string; topic: "why" | "next"; 
       </p>
       {explain.data.bullets.length ? (
         <ul className="bullets">
-          {explain.data.bullets.map((line) => (
+          {explain.data.bullets
+            .filter((line) => !line.startsWith("Рекомендация risk-модуля"))
+            .map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>

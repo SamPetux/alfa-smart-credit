@@ -420,7 +420,7 @@
   display: block;
   height: 1.125rem;
   border-radius: var(--radius-chip);
-  background: var(--raised);
+  background: var(--sunken);
 }
 
 .empty-block {

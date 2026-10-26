@@ -940,9 +940,21 @@ fieldset.field legend {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* На узких экранах: сначала решение, затем оценка и данные, в конце ревизии и история. */
   .dossier-aside {
-    order: -1;
-    position: static;
+    display: contents;
+  }
+
+  .dossier-grid > .stack-lg:first-child {
+    order: 1;
+  }
+
+  .dossier-aside > * {
+    order: 2;
+  }
+
+  .dossier-aside > :first-child {
+    order: 0;
   }
 
   .editor-aside {
