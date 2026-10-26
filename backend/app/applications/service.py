@@ -25,6 +25,7 @@ from backend.app.db.models import (
     Product,
 )
 from backend.app.schemas.applications import ClientApplication, DraftFields
+from backend.app.schemas.common import FieldError
 from backend.app.schemas.enums import ApplicationStatus, ProductCode, Role, WorkflowCommand
 from backend.app.workflow.transitions import IllegalTransitionError, next_status
 
@@ -156,6 +157,20 @@ def list_company_applications(
     return result
 
 
+def _active_info_request_fields(session: Session, application_id: UUID) -> set[str]:
+    from backend.app.db.models import InfoRequest
+
+    info = session.scalar(
+        select(InfoRequest).where(
+            InfoRequest.application_id == application_id,
+            InfoRequest.status == "OPEN",
+        )
+    )
+    if info is None:
+        raise ApiError(409, "INVALID_STATE", "Нет активного запроса уточнения")
+    return {str(f) for f in (info.fields_json or [])}
+
+
 def patch_draft(
     session: Session,
     *,
@@ -174,15 +189,31 @@ def patch_draft(
     if status == ApplicationStatus.DRAFT:
         command = WorkflowCommand.SAVE
         action = "SAVE_DRAFT"
+        allowed_keys: set[str] | None = None
     elif status == ApplicationStatus.NEEDS_INFO:
         command = WorkflowCommand.SAVE_SUPPLEMENT
         action = "SAVE_SUPPLEMENT"
+        allowed_keys = _active_info_request_fields(session, app.id)
     else:
         raise ApiError(409, "INVALID_STATE", "Редактирование недоступно в текущем статусе")
     try:
         next_status(status, command, actor=Role.CLIENT)
     except IllegalTransitionError as exc:
         raise ApiError(409, "INVALID_STATE", str(exc)) from exc
+
+    patch_keys = set(draft_fields.model_dump(exclude_unset=True).keys())
+    if allowed_keys is not None:
+        forbidden = sorted(patch_keys - allowed_keys)
+        if forbidden:
+            raise ApiError(
+                422,
+                "VALIDATION_ERROR",
+                "В режиме уточнения можно менять только запрошенные поля",
+                field_errors=[
+                    FieldError(field=name, message="Поле не запрошено для уточнения")
+                    for name in forbidden
+                ],
+            )
 
     app.draft_json = merge_draft(app.draft_json or {}, draft_fields)
     app.version += 1
@@ -200,6 +231,20 @@ def patch_draft(
     )
     session.flush()
     return to_client_application(app, get_product(session, app.product_id))
+
+
+def list_documents(session: Session, *, application_id: UUID) -> list[Document]:
+    """Актуальные документы по kind: последняя загрузка каждого вида."""
+    rows = session.scalars(
+        select(Document)
+        .where(Document.application_id == application_id)
+        .order_by(Document.created_at.desc())
+    ).all()
+    latest: dict[str, Document] = {}
+    for doc in rows:
+        if doc.kind not in latest:
+            latest[doc.kind] = doc
+    return sorted(latest.values(), key=lambda d: d.kind)
 
 
 def document_kinds_for_app(session: Session, application_id: UUID) -> set[str]:

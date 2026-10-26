@@ -26,6 +26,8 @@ from backend.app.schemas.applications import (
     ApplicationList,
     ClientApplication,
     CreateApplicationRequest,
+    DocumentList,
+    DocumentOut,
     DraftPatch,
     InfoRequestOut,
     OfferCommand,
@@ -238,6 +240,30 @@ def submit_application(
         response_json=payload,
     )
     return result
+
+
+@router.get("/{application_id}/documents", response_model=DocumentList)
+def list_documents(
+    application_id: UUID,
+    db: DbSession,
+    auth: RequireAuth,
+) -> DocumentList:
+    company_id = _require_client_company(auth)
+    apps.get_owned_application(db, application_id, company_id=company_id)
+    docs = apps.list_documents(db, application_id=application_id)
+    return DocumentList(
+        items=[
+            DocumentOut(
+                id=doc.id,
+                kind=doc.kind,
+                content_hash=doc.content_hash,
+                mime=doc.mime,
+                size_bytes=doc.size_bytes,
+                created_at=doc.created_at,
+            )
+            for doc in docs
+        ]
+    )
 
 
 @router.get("/{application_id}/documents/{doc_id}")

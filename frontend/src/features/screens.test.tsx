@@ -51,7 +51,7 @@ const offeredApp: ClientApplication = {
 };
 
 describe("OfferPanel", () => {
-  it("shows server terms and does not invent a monthly payment", async () => {
+  it("shows server payment terms and does not invent missing ones", async () => {
     mockFetch((url) => {
       if (url.endsWith("/auth/me")) return json(200, clientSession);
       if (url.endsWith("/offer"))
@@ -60,7 +60,15 @@ describe("OfferPanel", () => {
           status: "ACTIVE",
           revision_no: 1,
           created_at: "2026-10-26T10:00:00Z",
-          terms: { amount: "641000.00", term_months: 12, annual_rate: "0.22", fees: "0.00", is_alternative: true },
+          terms: {
+            amount: "641000.00",
+            term_months: 12,
+            annual_rate: "0.22",
+            fees: "0.00",
+            is_alternative: true,
+            monthly_payment: "59994.00",
+            total_payment: "719928.00",
+          },
         });
       if (url.includes("/explain")) return json(200, { bullets: [], disclaimer: "", headline: "", reason_codes: [] });
       return undefined;
@@ -68,7 +76,8 @@ describe("OfferPanel", () => {
     renderRoute(<OfferPanel app={offeredApp} />);
     expect(await screen.findByText(/^641\s000\s₽$/)).toBeInTheDocument();
     expect(screen.getByText(/Вы запрашивали 1\s000\s000\s₽/)).toBeInTheDocument();
-    expect(screen.getAllByText("Сервер пока не передаёт")).toHaveLength(2);
+    expect(screen.getByText(/59\s994/)).toBeInTheDocument();
+    expect(screen.getByText(/719\s928/)).toBeInTheDocument();
   });
 
   it("sends accept with the current version and an idempotency key", async () => {

@@ -302,12 +302,20 @@ def decide(
     session.flush()
 
     if decision_type == "APPROVE_OFFER":
+        terms = dict(risk.candidate_json or {})
+        affordability = risk.affordability_json or {}
+        monthly = affordability.get("offered_payment")
+        total = affordability.get("total_payment")
+        if monthly is not None:
+            terms["monthly_payment"] = monthly
+        if total is not None:
+            terms["total_payment"] = total
         session.add(
             Offer(
                 application_id=app.id,
                 decision_id=decision.id,
                 revision_no=app.current_revision,
-                terms_json=dict(risk.candidate_json),
+                terms_json=terms,
                 status="ACTIVE",
             )
         )

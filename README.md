@@ -2,9 +2,9 @@
 
 Умный кредитный кабинет — учебный веб-прототип (клиент + сотрудник банка) на синтетических данных.
 
-> Backend P0 (B01–B11): Compose smoke OK (arm64), digests pinned, путь до COMPLETED, CI, техдока.  
+> Backend P0 (B01–B11) + frontend F01–F10 в Compose (сборка `Dockerfile.web`).  
 > Шаблонные объяснения: `GET /api/v1/applications/{id}/explain` (без LLM).  
-> Ещё нет: полный UI Игоря, git tag сдачи, независимый E01/E2E QA.  
+> Ещё нет: git tag сдачи, независимый E01/E2E QA (Рамазан).  
 > **Не** production-ready и **не** соответствие банковским регуляторным требованиям.
 
 ## Документы
@@ -31,7 +31,7 @@
 
 ## Стек
 
-- Frontend: React + TypeScript + Vite — scaffold (владелец: Игорь; lock ещё нет)
+- Frontend: React + TypeScript + Vite (Игорь, F01–F10; `frontend/package-lock.json`)
 - Backend / worker: Python 3.12 + FastAPI + SQLAlchemy + Alembic (Олег)
 - Risk: чистый Python-модуль без сети/БД (Илья)
 - PostgreSQL 16, Compose, один origin через Caddy

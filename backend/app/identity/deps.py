@@ -82,8 +82,8 @@ def require_csrf(
 ) -> AuthContext:
     if request.method in {"GET", "HEAD", "OPTIONS"}:
         return auth
-    token = csrf_header or auth.csrf_token
-    if not csrf_matches(auth.session_row, token):
+    # Только заголовок: cookie alone = не double-submit (атакующий уже шлёт cookie).
+    if not csrf_header or not csrf_matches(auth.session_row, csrf_header):
         raise _forbidden("CSRF token mismatch")
     return auth
 

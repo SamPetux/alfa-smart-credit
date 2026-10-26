@@ -14,7 +14,7 @@
 | `DEMO_MODE=false` | `POST /auth/login` с тестовым username/password из [demo-accounts.md](demo-accounts.md) |
 
 - Cookie сессии: `asc_session` (имя из env).  
-- Изменяющие запросы: заголовок `X-CSRF-Token`.  
+- Изменяющие запросы: **обязателен** заголовок `X-CSRF-Token` (значение из ответа session; cookie alone недостаточно).  
 - `GET /auth/me`, `POST /auth/logout`.  
 - Роль и компания проверяются на сервере; UI не является ACL.
 
@@ -32,6 +32,7 @@
 |---|---|---|
 | GET/POST | `/applications` | Список / создать черновик |
 | GET/PATCH | `/applications/{id}` | Читать / править draft |
+| GET | `/applications/{id}/documents` | Список загруженных (последний по kind) |
 | POST | `/applications/{id}/documents` | Загрузка |
 | GET | `/applications/{id}/documents/{doc_id}` | Скачать (attachment) |
 | POST | `/applications/{id}/submit` | Отправка → 202 |

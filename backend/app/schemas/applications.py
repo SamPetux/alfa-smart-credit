@@ -18,13 +18,24 @@ class DraftFields(ApiModel):
     monthly_revenue: MoneyStr | None = None
     monthly_operating_costs: MoneyStr | None = None
     declared_monthly_debt_payments: MoneyStr | None = None
-    # Только для локальных симуляторов (B05); не кредитный признак
-    demo_scenario: str | None = None
 
 
 class DraftPatch(ApiModel):
     expected_version: int = Field(ge=1)
     draft_fields: DraftFields
+
+
+class DocumentOut(ApiModel):
+    id: UUID
+    kind: str
+    content_hash: str
+    mime: str
+    size_bytes: int
+    created_at: datetime
+
+
+class DocumentList(ApiModel):
+    items: list[DocumentOut]
 
 
 class CreateApplicationRequest(ApiModel):

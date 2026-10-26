@@ -5,12 +5,12 @@
 
 ## Форма
 
-Модульный монолит: один backend-образ для **API** и **worker**, PostgreSQL, reverse proxy (Caddy), web-заглушка до UI Игоря.
+Модульный монолит: один backend-образ для **API** и **worker**, PostgreSQL, reverse proxy (Caddy), web — production-сборка frontend (`infra/Dockerfile.web`).
 
 ```text
 browser → proxy:8080
             ├─ /api/*  → api:8000
-            └─ /*      → web:80 (placeholder)
+            └─ /*      → web:80 (SPA frontend/dist)
 worker ←→ PostgreSQL ←→ api
          documents volume (не static)
 ```

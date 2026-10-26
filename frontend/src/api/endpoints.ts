@@ -52,6 +52,10 @@ export const api = {
     request<ClientApplication>("PATCH", `/applications/${id}`, {
       body: { expected_version: expectedVersion, draft_fields: draftFields },
     }),
+  listDocuments: (id: string, { signal }: Signal = {}) =>
+    request<{ items: UploadedDocument[] }>("GET", `/applications/${id}/documents`, { signal }).then(
+      (r) => r.items,
+    ),
   uploadDocument: (
     id: string,
     input: { kind: string; file: File; expectedVersion: number },

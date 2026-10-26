@@ -35,11 +35,16 @@ def bureau_profile(scenario: str) -> dict[str, Any]:
     return dict(_load(filename))
 
 
+# Профиль симулятора задаёт сервер по компании, не клиентский PATCH.
+_COMPANY_SCENARIOS: dict[str, str] = {
+    "DEMO-001": "g01",
+    "DEMO-002": "g01",
+}
+
+
 def resolve_scenario(*, demo_registration_id: str | None, draft: dict[str, Any]) -> str:
-    """Явный demo_scenario в черновике важнее компании (для тестов)."""
-    explicit = draft.get("demo_scenario")
-    if isinstance(explicit, str) and explicit.strip():
-        return explicit.strip().lower()
-    if demo_registration_id == "DEMO-002":
+    """Сценарий источника — только по demo_registration_id (draft игнорируется)."""
+    del draft  # контракт вызова worker сохранён; клиентский override запрещён
+    if not demo_registration_id:
         return "g01"
-    return "g01"
+    return _COMPANY_SCENARIOS.get(demo_registration_id, "g01")

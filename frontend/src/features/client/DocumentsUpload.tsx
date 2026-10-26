@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../../api/endpoints";
 import { queryKeys } from "../../api/queryClient";
@@ -7,7 +7,7 @@ import { useCommand } from "../../api/useCommand";
 import { Button } from "../../components/Button";
 import { Field } from "../../components/Field";
 import { Icon } from "../../components/Icon";
-import { ErrorBlock } from "../../components/States";
+import { ErrorBlock, LoadingBlock } from "../../components/States";
 import { DOCUMENT_LABELS, documentTitle } from "./policy";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -30,7 +30,7 @@ function DocumentSlot({
   kind: string;
   uploaded: UploadedDocument | undefined;
   error?: string;
-  onUploaded: (doc: UploadedDocument, fileName: string) => void;
+  onUploaded: (doc: UploadedDocument) => void;
 }) {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
@@ -40,12 +40,12 @@ function DocumentSlot({
   const upload = useCommand(
     (selected: File, ctx) => api.uploadDocument(app.id, { kind, file: selected, expectedVersion: app.version }, ctx),
     {
-      onSuccess: (doc, selected) => {
-        // Загрузка увеличивает version заявки: следующие команды должны её учитывать.
+      onSuccess: (doc) => {
         queryClient.setQueryData<ClientApplication>(queryKeys.application(app.id), (current) =>
-          current ? { ...current, version: doc.version } : current,
+          current && doc.version != null ? { ...current, version: doc.version } : current,
         );
-        onUploaded(doc, selected.name);
+        void queryClient.invalidateQueries({ queryKey: queryKeys.documents(app.id) });
+        onUploaded(doc);
         setFile(null);
         setInputKey((key) => key + 1);
       },
@@ -93,9 +93,7 @@ function DocumentSlot({
         )}
       </Field>
       {uploaded ? (
-        <p className="small muted">
-          Загружено в этой сессии. Содержание файла не проверяется, сотрудник видит только факт загрузки.
-        </p>
+        <p className="small muted">Содержание файла не проверяется, сотрудник видит только факт загрузки.</p>
       ) : null}
       <div className="row">
         <Button
@@ -112,10 +110,7 @@ function DocumentSlot({
   );
 }
 
-/**
- * Загрузка демодокументов. API не отдаёт список загруженных файлов, поэтому отметка
- * «Загружен» живёт до перезагрузки страницы; итоговую полноту проверяет submit.
- */
+/** Загрузка демодокументов; отметка «Загружен» из GET /documents + локальный upload. */
 export function DocumentsUpload({
   app,
   kinds,
@@ -129,6 +124,24 @@ export function DocumentsUpload({
   uploaded: Record<string, UploadedDocument>;
   onUploaded: (doc: UploadedDocument) => void;
 }) {
+  const listed = useQuery({
+    queryKey: queryKeys.documents(app.id),
+    queryFn: ({ signal }) => api.listDocuments(app.id, { signal }),
+  });
+
+  if (listed.isPending) return <LoadingBlock rows={2} label="Загружаем список документов" />;
+  if (listed.isError) {
+    return (
+      <ErrorBlock error={listed.error} onRetry={() => void listed.refetch()} title="Список документов недоступен." />
+    );
+  }
+
+  const fromServer: Record<string, UploadedDocument> = {};
+  for (const doc of listed.data ?? []) {
+    fromServer[doc.kind] = doc;
+  }
+  const effective = { ...fromServer, ...uploaded };
+
   return (
     <div className="stack">
       {kinds.map((kind) => (
@@ -136,9 +149,9 @@ export function DocumentsUpload({
           key={kind}
           app={app}
           kind={kind}
-          uploaded={uploaded[kind]}
-          error={!uploaded[kind] && error?.includes(kind) ? "Документ нужен для отправки" : undefined}
-          onUploaded={(doc) => onUploaded(doc)}
+          uploaded={effective[kind]}
+          error={!effective[kind] && error?.includes(kind) ? "Документ нужен для отправки" : undefined}
+          onUploaded={onUploaded}
         />
       ))}
     </div>

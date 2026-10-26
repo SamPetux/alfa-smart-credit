@@ -55,9 +55,17 @@ def allowed_actions_for_officer(
     return actions
 
 
+def _client_draft(raw: dict[str, Any] | None) -> DraftFields:
+    """Только поля клиентского контракта; служебные ключи (demo_scenario) не отдаём."""
+    if not raw:
+        return DraftFields()
+    allowed = set(DraftFields.model_fields)
+    return DraftFields.model_validate({k: v for k, v in raw.items() if k in allowed})
+
+
 def to_client_application(app: Application, product: Product | None) -> ClientApplication:
     status = ApplicationStatus(app.status)
-    draft = DraftFields.model_validate(app.draft_json or {}) if app.draft_json else DraftFields()
+    draft = _client_draft(app.draft_json)
     product_code = ProductCode(product.code) if product else None
     return ClientApplication(
         id=app.id,
@@ -99,7 +107,7 @@ def to_bank_application(
         company_id=company.id if company else None,
         company_name=company.display_name if company else None,
         demo_registration_id=company.demo_registration_id if company else None,
-        draft_fields=DraftFields.model_validate(app.draft_json or {}) if app.draft_json else None,
+        draft_fields=_client_draft(app.draft_json) if app.draft_json else None,
         risk_summary=risk_summary,
         checks=checks,
         revisions=revisions,

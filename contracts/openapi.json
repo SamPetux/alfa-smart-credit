@@ -443,6 +443,47 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "List Documents",
+        "operationId": "list_documents_api_v1_applications__application_id__documents_get",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Application Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/applications/{application_id}/submit": {
@@ -2168,6 +2209,64 @@
         ],
         "title": "DemoSessionRequest"
       },
+      "DocumentList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "DocumentList"
+      },
+      "DocumentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "content_hash": {
+            "type": "string",
+            "title": "Content Hash"
+          },
+          "mime": {
+            "type": "string",
+            "title": "Mime"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "content_hash",
+          "mime",
+          "size_bytes",
+          "created_at"
+        ],
+        "title": "DocumentOut"
+      },
       "DraftFields-Input": {
         "properties": {
           "purpose": {
@@ -2263,17 +2362,6 @@
               }
             ],
             "title": "Declared Monthly Debt Payments"
-          },
-          "demo_scenario": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Demo Scenario"
           }
         },
         "additionalProperties": false,
@@ -2363,17 +2451,6 @@
               }
             ],
             "title": "Declared Monthly Debt Payments"
-          },
-          "demo_scenario": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Demo Scenario"
           }
         },
         "additionalProperties": false,

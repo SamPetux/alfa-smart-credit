@@ -1,7 +1,22 @@
-# Frontend scaffold. Полный npm build — после lock-файла Игоря (Fxx).
+# Production UI: multi-stage npm build → Caddy SPA.
+# Build context — корень репозитория (contracts/ импортируется при typecheck/build).
+# Node digest: manifest list 22.14.0-bookworm-slim (Docker Hub, 2026-10-26).
+
+FROM node:22.14.0-bookworm-slim@sha256:1c18d9ab3af4585870b92e4dbc5cac5a0dc77dd13df1a5905cea89fc720eb05b AS build
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json /app/frontend/
+COPY contracts /app/contracts
+WORKDIR /app/frontend
+RUN npm ci
+
+COPY frontend /app/frontend
+RUN npm run build
+
 FROM caddy:2.8.4-alpine@sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
 
-COPY infra/proxy/web-placeholder.html /usr/share/caddy/index.html
+COPY --from=build /app/frontend/dist /usr/share/caddy
 COPY infra/proxy/Caddyfile.web /etc/caddy/Caddyfile
 
 EXPOSE 80

@@ -149,7 +149,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Documents */
+        get: operations["list_documents_api_v1_applications__application_id__documents_get"];
         put?: never;
         /** Upload Document */
         post: operations["upload_document_api_v1_applications__application_id__documents_post"];
@@ -696,6 +697,32 @@ export interface components {
             /** Profile Id */
             profile_id: string;
         };
+        /** DocumentList */
+        DocumentList: {
+            /** Items */
+            items: components["schemas"]["DocumentOut"][];
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Mime */
+            mime: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** DraftFields */
         "DraftFields-Input": {
             /** Purpose */
@@ -712,8 +739,6 @@ export interface components {
             monthly_operating_costs?: number | string | null;
             /** Declared Monthly Debt Payments */
             declared_monthly_debt_payments?: number | string | null;
-            /** Demo Scenario */
-            demo_scenario?: string | null;
         };
         /** DraftFields */
         "DraftFields-Output": {
@@ -731,8 +756,6 @@ export interface components {
             monthly_operating_costs?: string | null;
             /** Declared Monthly Debt Payments */
             declared_monthly_debt_payments?: string | null;
-            /** Demo Scenario */
-            demo_scenario?: string | null;
         };
         /** DraftPatch */
         DraftPatch: {
@@ -1195,6 +1218,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientApplication"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_documents_api_v1_applications__application_id__documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentList"];
                 };
             };
             /** @description Validation Error */

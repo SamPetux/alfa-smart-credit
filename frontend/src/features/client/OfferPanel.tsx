@@ -11,8 +11,6 @@ import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
 import { formatAmount, formatMoney, formatRate } from "../../shared/money";
 import { isConflict, useApplicationCommandEffects } from "./commandEffects";
 
-const NOT_PROVIDED = "Сервер пока не передаёт";
-
 /** Условия предложения — только значения сервера. Платёж и итог frontend не вычисляет. */
 export function OfferTerms({ offer, requestedAmount }: { offer: Offer; requestedAmount: string | null | undefined }) {
   const terms = offer.terms;
@@ -29,12 +27,12 @@ export function OfferTerms({ offer, requestedAmount }: { offer: Offer; requested
         { label: "Ставка", value: `${formatRate(terms.annual_rate)} годовых`, numeric: true },
         {
           label: "Ежемесячный платёж",
-          value: terms.monthly_payment ? formatMoney(terms.monthly_payment) : <span className="muted">{NOT_PROVIDED}</span>,
+          value: terms.monthly_payment ? formatMoney(terms.monthly_payment) : "—",
           numeric: true,
         },
         {
           label: "Сумма всех выплат",
-          value: terms.total_payment ? formatMoney(terms.total_payment) : <span className="muted">{NOT_PROVIDED}</span>,
+          value: terms.total_payment ? formatMoney(terms.total_payment) : "—",
           numeric: true,
         },
         {

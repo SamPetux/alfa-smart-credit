@@ -50,7 +50,6 @@ export interface OfferTerms {
   currency?: string;
   fees?: Money;
   is_alternative?: boolean;
-  /** Пока не передаются сервером (B07): см. limitations в README frontend. */
   monthly_payment?: Money;
   total_payment?: Money;
 }
@@ -75,7 +74,11 @@ export interface UploadedDocument {
   id: string;
   kind: string;
   content_hash: string;
-  version: number;
+  /** После upload; в listDocuments может отсутствовать. */
+  version?: number;
+  mime?: string;
+  size_bytes?: number;
+  created_at?: string;
 }
 
 export interface ExplainResponse {

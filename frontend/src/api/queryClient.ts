@@ -8,6 +8,7 @@ export const queryKeys = {
   products: ["products"] as const,
   applications: ["applications"] as const,
   application: (id: string) => ["applications", id] as const,
+  documents: (id: string) => ["applications", id, "documents"] as const,
   history: (id: string) => ["applications", id, "history"] as const,
   infoRequest: (id: string) => ["applications", id, "info-request"] as const,
   offer: (id: string) => ["applications", id, "offer"] as const,

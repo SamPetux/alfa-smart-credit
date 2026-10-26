@@ -26,7 +26,6 @@ def _create_submitted(
     headers: dict[str, str],
     *,
     key: str,
-    demo_scenario: str | None = None,
 ) -> str:
     create = client.post(
         "/api/v1/applications",
@@ -44,8 +43,6 @@ def _create_submitted(
         "monthly_operating_costs": "1000000.00",
         "declared_monthly_debt_payments": "100000.00",
     }
-    if demo_scenario:
-        draft_fields["demo_scenario"] = demo_scenario
 
     patch = client.patch(
         f"/api/v1/applications/{app_id}",
@@ -99,17 +96,21 @@ def test_worker_g01_to_manual_review(client: TestClient, client_headers: dict[st
 
 
 def test_worker_timeout_to_processing_error(
-    client: TestClient, client_headers: dict[str, str]
+    client: TestClient, client_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     os.environ["JOB_MAX_ATTEMPTS"] = "2"
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_session_factory.cache_clear()
 
+    # Сценарий источника задаёт сервер (не клиентский draft.demo_scenario).
+    monkeypatch.setattr(
+        "backend.app.jobs.evaluate_pipeline.resolve_scenario",
+        lambda **_: "timeout",
+    )
+
     try:
-        app_id = _create_submitted(
-            client, client_headers, key="timeout", demo_scenario="timeout"
-        )
+        app_id = _create_submitted(client, client_headers, key="timeout")
         assert process_once() == "requeued"
         time.sleep(1.2)
         assert process_once() == "failed"

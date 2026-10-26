@@ -194,6 +194,19 @@ paths:
         "409":
           $ref: "#/components/responses/Error"
   /applications/{id}/documents:
+    get:
+      tags: [applications]
+      summary: Список загруженных документов
+      operationId: listDocuments
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: Актуальные документы по kind (последняя загрузка каждого вида)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentList"
     post:
       tags: [applications]
       summary: Загрузить документ
@@ -773,6 +786,25 @@ components:
           type: string
           description: Обязателен при REJECT
         comment: { type: string }
+    DocumentOut:
+      type: object
+      required: [id, kind, content_hash, mime, size_bytes, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        kind:
+          type: string
+          enum: [FINANCIAL_SUMMARY, EQUIPMENT_QUOTE]
+        content_hash: { type: string }
+        mime: { type: string }
+        size_bytes: { type: integer, minimum: 0 }
+        created_at: { type: string, format: date-time }
+    DocumentList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/DocumentOut" }
     ErrorEnvelope:
       type: object
       required: [error]
