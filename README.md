@@ -46,7 +46,7 @@ docker compose up --build
 ```
 
 Compose: `db` → `init` (alembic + idempotent seed) → `api` / `worker` → `web` → `proxy`.  
-Frontend — заглушка до Fxx Игоря. Worker обрабатывает jobs: симуляторы + risk, успешный путь до MANUAL_REVIEW. Банковские решения и завершение полного E01 ещё отсутствуют.
+Frontend — заглушка до Fxx Игоря. В этой рабочей ветке worker проверен до `MANUAL_REVIEW`; в `origin/main` добавлены B06/B07: банковское решение, уточнение, принятие, подпись и имитация выдачи до `COMPLETED`. Полный веб-E01 ещё отсутствует.
 
 Для этой облачной среды нужны дополнительные настройки CA и прав файлов, сохранённые вне Git при onboarding. Штатный запуск без них здесь не подтверждён; подробности и проверенные команды — в [инструкции backend](./docs/backend-development.md).
 
