@@ -88,10 +88,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // Ключ по пользователю пересоздаёт всё дерево: формы, локальное состояние и подписки
   // на запросы прежнего профиля не переживают смену сессии.
+  // До ответа /auth/me экраны не монтируются: иначе они отрисовались бы анонимно и сразу пересоздались.
   const identity = value.session?.user.id ?? "anonymous";
   return (
     <SessionContext.Provider value={value}>
-      <Fragment key={identity}>{children}</Fragment>
+      {sessionQuery.isPending ? (
+        <p className="session-pending" role="status">
+          Проверяем сессию…
+        </p>
+      ) : (
+        <Fragment key={identity}>{children}</Fragment>
+      )}
     </SessionContext.Provider>
   );
 }

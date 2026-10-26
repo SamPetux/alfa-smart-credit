@@ -36,7 +36,7 @@ export function AgreementPanel({ app }: { app: ClientApplication }) {
       ) : (
         <>
           <DocumentView
-            title="Кредитный договор — учебная имитация"
+            title="Кредитный договор (учебная имитация)"
             text={agreement.data.document_text}
             contentHash={agreement.data.content_hash}
           />

@@ -138,7 +138,7 @@ function DraftEditor({ app, product, products }: { app: ClientApplication; produ
                 },
               ]}
             />
-            <p className="small muted">Чтобы выбрать другой продукт, создайте новую заявку — этот черновик сохранится.</p>
+            <p className="small muted">Чтобы выбрать другой продукт, создайте новую заявку. Этот черновик сохранится.</p>
           </Panel>
 
           <Panel title="Сумма и срок" id="amount">

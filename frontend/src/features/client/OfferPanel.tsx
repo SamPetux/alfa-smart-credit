@@ -90,7 +90,7 @@ export function OfferPanel({ app }: { app: ClientApplication }) {
       ) : offer.isError ? (
         <ErrorBlock error={offer.error} onRetry={() => void offer.refetch()} />
       ) : !offer.data ? (
-        <Notice tone="warning">Действующего предложения нет. Обновите страницу — статус мог измениться.</Notice>
+        <Notice tone="warning">Действующего предложения нет. Обновите страницу: статус мог измениться.</Notice>
       ) : (
         <>
           <p className="muted">Условия подтвердил специалист банка. Они рассчитаны по учебной политике и не являются публичной офертой.</p>
@@ -119,7 +119,7 @@ export function OfferPanel({ app }: { app: ClientApplication }) {
               Отклонить предложение
             </Button>
           </div>
-          <p className="small muted">После принятия откроется документ для ознакомления; подписание — отдельным шагом.</p>
+          <p className="small muted">После принятия откроется документ для ознакомления. Подписание будет отдельным шагом.</p>
           <ConfirmDialog
             open={confirmDecline}
             title="Отклонить предложение?"

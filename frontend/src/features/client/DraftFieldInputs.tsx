@@ -18,7 +18,7 @@ interface Props {
 const MONEY_HINTS: Partial<Record<EditableField, string>> = {
   monthly_revenue: "Средняя выручка бизнеса за месяц.",
   monthly_operating_costs: "Расходы без платежей по кредитам.",
-  declared_monthly_debt_payments: "Если действующих кредитов нет, укажите 0 — пустое поле не равно нулю.",
+  declared_monthly_debt_payments: "Если действующих кредитов нет, укажите 0: пустое поле не считается нулём.",
 };
 
 /** Поля черновика по одному списку: используются и в черновике, и в уточнении. */

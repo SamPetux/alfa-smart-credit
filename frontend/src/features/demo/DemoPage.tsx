@@ -182,7 +182,7 @@ export function DemoPage() {
           ) : (
             <>
               <section className="stack" aria-labelledby="clients-title">
-                <h2 id="clients-title">Клиенты — малый бизнес</h2>
+                <h2 id="clients-title">Клиенты, малый бизнес</h2>
                 <ul className="profile-grid">
                   {clients.map((profile) => (
                     <ProfileCard

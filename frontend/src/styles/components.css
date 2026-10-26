@@ -438,6 +438,7 @@
 
 .kv-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
@@ -457,6 +458,7 @@
 
 .kv dd {
   flex: 0 1 auto;
+  margin-left: auto;
   text-align: right;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -519,7 +521,7 @@
 .dialog {
   width: min(32rem, calc(100vw - 2rem));
   padding: 0;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: var(--radius-card);
   box-shadow: 0 12px 32px rgb(20 22 26 / 0.18);
   color: var(--text);

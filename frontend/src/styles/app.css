@@ -57,6 +57,7 @@
   color: var(--muted);
   text-decoration: none;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .topnav a:hover {
@@ -299,6 +300,7 @@
 
 .product-option-body {
   display: grid;
+  align-content: start;
   gap: 0.5rem;
   height: 100%;
   padding: 1rem 1.25rem;
@@ -663,4 +665,9 @@ fieldset.field legend {
   .filters .field {
     width: 100%;
   }
+}
+
+.session-pending {
+  padding: 2rem var(--gutter);
+  color: var(--muted);
 }

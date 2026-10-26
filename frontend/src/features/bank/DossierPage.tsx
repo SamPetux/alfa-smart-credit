@@ -38,7 +38,7 @@ function DeclaredData({ app }: { app: BankApplication }) {
       {docs.length ? (
         <p className="small muted">
           Документы ({docs.map(documentTitle).join(", ")}): сервер подтвердил наличие при отправке. Содержание не
-          проверялось — имя файла не является проверкой.
+          проверялось: имя файла не является проверкой.
         </p>
       ) : null}
     </Panel>

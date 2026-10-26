@@ -119,7 +119,7 @@ export function OfficerActions({ app }: { app: BankApplication }) {
     <Panel title="Решение" id="actions">
       {conflict ? (
         <Notice tone="warning" title="Заявка изменилась, пока вы её рассматривали.">
-          Действие не выполнено. Досье обновлено — проверьте актуальные данные и примите решение заново.
+          Действие не выполнено. Досье обновлено. Проверьте актуальные данные и примите решение заново.
         </Notice>
       ) : null}
       {allowed.size === 0 ? (

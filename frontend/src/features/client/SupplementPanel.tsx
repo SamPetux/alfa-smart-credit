@@ -148,7 +148,7 @@ export function SupplementPanel({ app, product }: { app: ClientApplication; prod
       ) : infoRequest.isError ? (
         <ErrorBlock error={infoRequest.error} onRetry={() => void infoRequest.refetch()} />
       ) : !infoRequest.data ? (
-        <Notice tone="warning">Активного запроса нет. Обновите страницу — статус мог измениться.</Notice>
+        <Notice tone="warning">Активного запроса нет. Обновите страницу: статус мог измениться.</Notice>
       ) : (
         <>
           <blockquote className="request-message">{infoRequest.data.message}</blockquote>
