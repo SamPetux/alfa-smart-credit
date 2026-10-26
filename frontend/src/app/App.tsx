@@ -9,6 +9,8 @@ import { ApplicationPage } from "../features/client/ApplicationPage";
 import { DraftEditorPage } from "../features/client/DraftEditorPage";
 import { HomePage } from "../features/client/HomePage";
 import { NewApplicationPage } from "../features/client/NewApplicationPage";
+import { DossierPage } from "../features/bank/DossierPage";
+import { QueuePage } from "../features/bank/QueuePage";
 import { AppShell } from "./AppShell";
 import { RequireRole, RootRedirect } from "./guards";
 
@@ -41,6 +43,17 @@ export function createAppRouter() {
         { path: "/applications/new", element: <NewApplicationPage /> },
         { path: "/applications/:id/edit", element: <DraftEditorPage /> },
         { path: "/applications/:id", element: <ApplicationPage /> },
+      ],
+    },
+    {
+      element: (
+        <RequireRole role="OFFICER">
+          <AppShell />
+        </RequireRole>
+      ),
+      children: [
+        { path: "/bank/applications", element: <QueuePage /> },
+        { path: "/bank/applications/:id", element: <DossierPage /> },
       ],
     },
     { path: "*", element: <NotFound /> },

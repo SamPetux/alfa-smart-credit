@@ -136,7 +136,7 @@
 .app-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 9rem 13rem 8.5rem 1rem;
+  grid-template-columns: minmax(0, 1fr) 8.5rem 15.5rem 8.5rem 1rem;
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 0.5rem;
@@ -197,7 +197,7 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .app-row {
-    grid-template-columns: minmax(0, 1fr) 9rem 13rem 1rem;
+    grid-template-columns: minmax(0, 1fr) 8.5rem 15.5rem 1rem;
   }
 
   .app-row-date {
@@ -475,4 +475,192 @@ fieldset.field legend {
   cursor: pointer;
   color: var(--muted);
   font-size: var(--fs-small);
+}
+
+/* ---------- Bank queue ---------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.filters .field {
+  width: 16rem;
+  max-width: 100%;
+}
+
+.queue-head,
+.queue-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8.5rem 15.5rem 7.5rem 7.5rem;
+  align-items: center;
+  gap: 1rem;
+}
+
+.queue-head {
+  padding: 0 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.queue-row {
+  position: relative;
+  padding: 0.875rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+}
+
+.queue-row:last-child {
+  border-bottom: 0;
+}
+
+.queue-row:hover {
+  background: var(--raised);
+}
+
+.queue-row:has(.app-row-title:focus-visible) {
+  outline: 2px solid var(--focus);
+}
+
+.queue-main {
+  display: grid;
+  min-width: 0;
+}
+
+.queue-amount,
+.queue-time {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.queue-action-due {
+  font-weight: 600;
+}
+
+.queue-row .badge {
+  justify-self: start;
+}
+
+/* ---------- Dossier ---------- */
+.dossier-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.risk-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.risk-summary > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+}
+
+.risk-summary > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.risk-value {
+  font-size: var(--fs-figure);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.source-list {
+  display: grid;
+}
+
+.source-row {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.source-row:last-child {
+  border-bottom: 0;
+}
+
+.source-name {
+  font-weight: 500;
+}
+
+.source-ok {
+  color: var(--tone-positive-ink);
+}
+
+.source-fail {
+  color: var(--tone-negative-ink);
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .dossier-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dossier-aside {
+    order: -1;
+  }
+
+  .queue-head {
+    display: none;
+  }
+
+  .queue-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "main amount"
+      "badge time"
+      "action action";
+    gap: 0.375rem 1rem;
+  }
+
+  .queue-main {
+    grid-area: main;
+  }
+
+  .queue-amount {
+    grid-area: amount;
+  }
+
+  .queue-row .badge {
+    grid-area: badge;
+  }
+
+  .queue-time {
+    grid-area: time;
+  }
+
+  .queue-action {
+    grid-area: action;
+  }
+}
+
+@media (max-width: 720px) {
+  .source-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.125rem;
+  }
+
+  .risk-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .risk-summary > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .filters .field {
+    width: 100%;
+  }
 }
