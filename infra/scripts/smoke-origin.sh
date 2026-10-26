@@ -10,7 +10,11 @@ curl -fsS "$BASE/api/v1/health/live" | grep -q '"status":"ok"'
 echo "smoke: ready"
 curl -fsS "$BASE/api/v1/health/ready" | grep -q '"status":"ok"'
 
-echo "smoke: web placeholder"
-curl -fsS "$BASE/" | grep -q "Alfa Smart Credit"
+echo "smoke: spa index"
+html="$(curl -fsS "$BASE/")"
+echo "$html" | grep -q '<div id="root">'
+echo "$html" | grep -q '/assets/index-'
+# SPA fallback для клиентского маршрута
+curl -fsS "$BASE/demo" | grep -q '<div id="root">'
 
 echo "smoke: ok (same origin UI+API)"

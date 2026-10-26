@@ -1,6 +1,7 @@
 # Compose: db → init (migrate+seed) → api/worker → web → proxy :8080
 # Один origin UI+API. БД наружу не публикуется. Volumes: pgdata, documents.
-# Digests зафиксированы после успешного compose smoke на macOS arm64 (2026-10-26).
+# Digests зафиксированы после compose smoke на macOS arm64 (2026-10-26, SPA web-сборка).
+# Node digests — infra/Dockerfile.web; таблица — docs/release.md.
 # linux/amd64 в CI может резолвить тот же manifest list; при расхождении обновить docs/release.md.
 
 services:

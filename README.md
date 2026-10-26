@@ -65,7 +65,7 @@ PYTHONPATH=. python scripts/check_openapi_contract.py
 
 ## Ограничения платформ
 
-- Dev + Compose smoke: **macOS arm64** (Docker Desktop), `sh infra/scripts/smoke-origin.sh` — OK (2026-10-26).  
+- Dev + Compose smoke: **macOS arm64** (Docker Desktop), `sh infra/scripts/smoke-origin.sh` — OK (2026-10-26, SPA UI + API).  
 - CI: **linux/amd64**. Отдельный прогон Compose на amd64 — через GitHub Actions `compose-smoke`.  
 - Подробности: [architecture.md](./docs/architecture.md#платформы), digests — [release.md](./docs/release.md).
 
