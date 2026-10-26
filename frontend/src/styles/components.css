@@ -450,10 +450,13 @@
 }
 
 .kv dt {
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--muted);
 }
 
 .kv dd {
+  flex: 0 1 auto;
   text-align: right;
   min-width: 0;
   overflow-wrap: anywhere;

@@ -272,3 +272,207 @@
     width: 100%;
   }
 }
+
+/* ---------- New application ---------- */
+.product-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.product-option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.product-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.product-option-body {
+  display: grid;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  transition: border-color var(--duration) var(--ease-out);
+}
+
+.product-option:hover .product-option-body {
+  border-color: #9aa0a7;
+}
+
+.product-option input:checked + .product-option-body {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.product-option input:focus-visible + .product-option-body {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.product-option-title {
+  font-size: var(--fs-section);
+  font-weight: 600;
+}
+
+.product-facts {
+  display: grid;
+  gap: 0.125rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+/* ---------- Draft editor and application card ---------- */
+.editor-grid,
+.card-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.editor-aside {
+  position: sticky;
+  top: 1rem;
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.save-status-dirty {
+  color: var(--tone-attention-ink);
+  font-weight: 500;
+}
+
+.review-todo ul {
+  display: grid;
+  gap: 0.25rem;
+  padding-left: 1rem;
+  list-style: disc;
+}
+
+.doc-slot {
+  display: grid;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.doc-slot:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+
+
+.tag-done {
+  color: var(--tone-positive-ink);
+  font-weight: 500;
+}
+
+.figure {
+  font-size: var(--fs-figure);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bullets {
+  display: grid;
+  gap: 0.25rem;
+  padding-left: 1.125rem;
+  list-style: disc;
+}
+
+.request-message {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--raised);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 960px) {
+  .editor-grid,
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-aside {
+    position: static;
+  }
+}
+
+fieldset.field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+fieldset.field legend {
+  padding: 0;
+  margin-bottom: 0.375rem;
+}
+
+.file-picker {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Нативный input поверх кнопки: клавиатура, label и скринридер работают как у обычного поля. */
+.file-picker-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-picker:has(.file-picker-input:focus-visible) .file-picker-button {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.file-picker:hover .file-picker-button {
+  border-color: #9aa0a7;
+}
+
+.file-picker-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.document-readable {
+  padding: 0.75rem 1rem 0;
+}
+
+.document-source {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.75rem;
+}
+
+.document-source summary {
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}

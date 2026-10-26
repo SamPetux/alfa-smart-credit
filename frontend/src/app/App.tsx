@@ -5,7 +5,10 @@ import { createQueryClient } from "../api/queryClient";
 import { SessionProvider } from "../api/session";
 import { ButtonLink } from "../components/Button";
 import { DemoPage } from "../features/demo/DemoPage";
+import { ApplicationPage } from "../features/client/ApplicationPage";
+import { DraftEditorPage } from "../features/client/DraftEditorPage";
 import { HomePage } from "../features/client/HomePage";
+import { NewApplicationPage } from "../features/client/NewApplicationPage";
 import { AppShell } from "./AppShell";
 import { RequireRole, RootRedirect } from "./guards";
 
@@ -33,7 +36,12 @@ export function createAppRouter() {
           <AppShell />
         </RequireRole>
       ),
-      children: [{ path: "/applications", element: <HomePage /> }],
+      children: [
+        { path: "/applications", element: <HomePage /> },
+        { path: "/applications/new", element: <NewApplicationPage /> },
+        { path: "/applications/:id/edit", element: <DraftEditorPage /> },
+        { path: "/applications/:id", element: <ApplicationPage /> },
+      ],
     },
     { path: "*", element: <NotFound /> },
   ]);
