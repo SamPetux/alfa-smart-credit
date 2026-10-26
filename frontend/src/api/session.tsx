@@ -11,6 +11,8 @@ interface SessionContextValue {
   isLoading: boolean;
   /** Смена демопрофиля: отмена запросов, очистка кэша, новая серверная сессия. */
   switchProfile: (profileId: string) => Promise<SessionInfo>;
+  /** Вход тестовым аккаунтом при DEMO_MODE=false. */
+  signIn: (username: string, password: string) => Promise<SessionInfo>;
   signOut: () => Promise<void>;
 }
 
@@ -43,15 +45,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== queryKeys.session[0] });
   }, [queryClient]);
 
-  const switchProfile = useCallback(
-    async (profileId: string) => {
+  const startSession = useCallback(
+    async (open: () => Promise<SessionInfo>) => {
       await dropPreviousProfile();
-      const info = await api.startDemoSession(profileId);
+      const info = await open();
       setCsrfToken(info.csrf_token);
       queryClient.setQueryData(queryKeys.session, info);
       return info;
     },
     [dropPreviousProfile, queryClient],
+  );
+
+  const switchProfile = useCallback(
+    (profileId: string) => startSession(() => api.startDemoSession(profileId)),
+    [startSession],
+  );
+
+  const signIn = useCallback(
+    (username: string, password: string) => startSession(() => api.login(username, password)),
+    [startSession],
   );
 
   const signOut = useCallback(async () => {
@@ -68,9 +80,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       session: sessionQuery.data ?? null,
       isLoading: sessionQuery.isPending,
       switchProfile,
+      signIn,
       signOut,
     }),
-    [sessionQuery.data, sessionQuery.isPending, switchProfile, signOut],
+    [sessionQuery.data, sessionQuery.isPending, switchProfile, signIn, signOut],
   );
 
   // Ключ по пользователю пересоздаёт всё дерево: формы, локальное состояние и подписки

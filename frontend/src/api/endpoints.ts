@@ -29,6 +29,8 @@ export const api = {
     request<{ profiles: DemoProfile[] }>("GET", "/demo/profiles", { signal }).then((r) => r.profiles),
   startDemoSession: (profileId: string) =>
     request<SessionInfo>("POST", "/demo/session", { body: { profile_id: profileId } }),
+  login: (username: string, password: string) =>
+    request<SessionInfo>("POST", "/auth/login", { body: { username, password } }),
   me: ({ signal }: Signal = {}) => request<SessionInfo>("GET", "/auth/me", { signal }),
   logout: () => request<null>("POST", "/auth/logout"),
 

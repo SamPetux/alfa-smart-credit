@@ -137,3 +137,7 @@ textarea {
   align-items: center;
   gap: 0.75rem;
 }
+
+.nowrap {
+  white-space: nowrap;
+}
