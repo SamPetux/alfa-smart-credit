@@ -1,0 +1,14 @@
+{
+  "name": "alfa-smart-credit-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Q03 Playwright E2E: отдельные browser contexts для CLIENT и OFFICER",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

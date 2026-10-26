@@ -14,6 +14,9 @@ build/
 node_modules/
 frontend/dist/
 *.tsbuildinfo
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/blob-report/
 
 # Env / secrets
 .env

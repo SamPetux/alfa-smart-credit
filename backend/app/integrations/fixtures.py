@@ -36,9 +36,10 @@ def bureau_profile(scenario: str) -> dict[str, Any]:
 
 
 # Профиль симулятора задаёт сервер по компании, не клиентский PATCH.
+# DEMO-001 — успешный путь (G01); DEMO-002 — просрочка БКИ (G04 / E04).
 _COMPANY_SCENARIOS: dict[str, str] = {
     "DEMO-001": "g01",
-    "DEMO-002": "g01",
+    "DEMO-002": "g04",
 }
 
 

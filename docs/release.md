@@ -40,8 +40,9 @@ git rev-parse HEAD
 
 ## Архив артефактов (чеклист)
 
-- [ ] Tag + SHA в README/отчёте сдачи
-- [ ] `contracts/` (openapi, statuses, risk/policy)
-- [ ] Лог CI run URL
-- [ ] (опционально) `docker compose` image digests
-- [ ] Не включать `.env` с секретами
+- [x] `contracts/` (openapi, statuses, risk/policy)
+- [x] `docs/qa/readiness-report.md` + Postman + E2E
+- [x] `docker compose` image digests (таблица выше)
+- [ ] Tag + SHA в README/отчёте сдачи — после push и зелёного CI
+- [ ] Лог CI run URL на tagged SHA
+- [x] Не включать `.env` с секретами

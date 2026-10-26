@@ -102,6 +102,13 @@ jobs:
       - name: Smoke same-origin
         run: sh infra/scripts/smoke-origin.sh
 
+      - name: E2E Playwright (Q03)
+        working-directory: tests/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm test
+
       - name: Compose down
         if: always()
         run: docker compose down -v

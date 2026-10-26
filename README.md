@@ -2,9 +2,9 @@
 
 Умный кредитный кабинет — учебный веб-прототип (клиент + сотрудник банка) на синтетических данных.
 
-> Backend P0 (B01–B11) + frontend F01–F10 в Compose (сборка `Dockerfile.web`).  
-> Шаблонные объяснения: `GET /api/v1/applications/{id}/explain` (без LLM).  
-> Ещё нет: git tag сдачи, независимый E01/E2E QA (Рамазан).  
+> Backend P0 (B01–B11) + frontend F01–F10 в Compose (`infra/Dockerfile.web`).  
+> QA: `docs/qa/` (матрица, clean-run, Postman, readiness) + `tests/e2e`.  
+> Tag сдачи: `v0.1.0-hackathon` (см. [release.md](./docs/release.md)).  
 > **Не** production-ready и **не** соответствие банковским регуляторным требованиям.
 
 ## Документы
@@ -25,8 +25,11 @@
 | [docs/release.md](./docs/release.md) | Tag/SHA, digests (B10) |
 | [docs/ai-explanations.md](./docs/ai-explanations.md) | Объяснения: шаблоны vs open-weight LLM |
 | [docs/product.md](./docs/product.md) | JTBD, P0/P1 (Дима) |
+| [docs/requirements.md](./docs/requirements.md) | Матрица R01–R18 (D05) |
+| [docs/qa/readiness-report.md](./docs/qa/readiness-report.md) | Отчёт готовности (Q07) |
+| [docs/demo-plan.md](./docs/demo-plan.md) | План защиты (D08) |
 | [docs/backlog.md](./docs/backlog.md) | Задания и блокеры |
-| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Предварительный реестр зависимостей |
+| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Реестр зависимостей |
 | [.github/workflows/ci.yml](./.github/workflows/ci.yml) | CI pipeline |
 
 ## Стек

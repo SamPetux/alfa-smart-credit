@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "alfa-smart-credit API v1 (Q06)",
+    "description": "Session/CSRF flow. No personal tokens. Base: {{baseUrl}}=http://127.0.0.1:8080/api/v1. After demo/session or login, set csrf_token from response into collection variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8080/api/v1" },
+    { "key": "csrf_token", "value": "" },
+    { "key": "application_id", "value": "" },
+    { "key": "expected_version", "value": "1" },
+    { "key": "offer_id", "value": "" },
+    { "key": "run_id", "value": "" },
+    { "key": "candidate_hash", "value": "" },
+    { "key": "info_request_id", "value": "" },
+    { "key": "agreement_id", "value": "" },
+    { "key": "content_hash", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0 health",
+      "item": [
+        {
+          "name": "ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health/ready"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 demo session (CLIENT)",
+      "item": [
+        {
+          "name": "profiles",
+          "request": { "method": "GET", "url": "{{baseUrl}}/demo/profiles" }
+        },
+        {
+          "name": "session client-romashka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('csrf_token', j.csrf_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_id\": \"client-romashka\"\n}"
+            },
+            "url": "{{baseUrl}}/demo/session"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 client application",
+      "item": [
+        {
+          "name": "create draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('application_id', j.id);",
+                  "pm.collectionVariables.set('expected_version', String(j.version));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf_token}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_code\": \"WORKING_CAPITAL\"\n}"
+            },
+            "url": "{{baseUrl}}/applications"
+          }
+        },
+        {
+          "name": "patch draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('expected_version', String(pm.response.json().version));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{expected_version}},\n  \"draft_fields\": {\n    \"purpose\": \"working_capital\",\n    \"requested_amount\": \"1000000.00\",\n    \"term_months\": 12,\n    \"company_form\": \"LLC\",\n    \"monthly_revenue\": \"1500000.00\",\n    \"monthly_operating_costs\": \"1000000.00\",\n    \"declared_monthly_debt_payments\": \"100000.00\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/applications/{{application_id}}"
+          }
+        },
+        {
+          "name": "list documents",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/applications/{{application_id}}/documents"
+          }
+        },
+        {
+          "name": "submit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf_token}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{expected_version}}\n}"
+            },
+            "url": "{{baseUrl}}/applications/{{application_id}}/submit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 officer session",
+      "item": [
+        {
+          "name": "session officer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('csrf_token', pm.response.json().csrf_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_id\": \"officer\"\n}"
+            },
+            "url": "{{baseUrl}}/demo/session"
+          }
+        },
+        {
+          "name": "dossier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('expected_version', String(j.version));",
+                  "if (j.active_run_id) pm.collectionVariables.set('run_id', j.active_run_id);",
+                  "if (j.risk_summary && j.risk_summary.candidate_hash) pm.collectionVariables.set('candidate_hash', j.risk_summary.candidate_hash);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/bank/applications/{{application_id}}"
+          }
+        },
+        {
+          "name": "approve offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf_token}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{expected_version}},\n  \"run_id\": \"{{run_id}}\",\n  \"type\": \"APPROVE_OFFER\",\n  \"candidate_hash\": \"{{candidate_hash}}\"\n}"
+            },
+            "url": "{{baseUrl}}/bank/applications/{{application_id}}/decision"
+          }
+        }
+      ]
+    }
+  ]
+}

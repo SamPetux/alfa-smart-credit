@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "Alfa Smart Credit API v1 (Q06)",
+    "description": "Cookie session + CSRF only via X-CSRF-Token (no cookie-only CSRF). Base http://127.0.0.1:8080. Profiles: client-romashka, client-ivanov, officer. After demo/session copy csrf_token → variable csrf. Documents upload and full E01 better via UI/E2E; this collection covers session/CSRF/happy API skeleton.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8080" },
+    { "key": "csrf", "value": "" },
+    { "key": "applicationId", "value": "" },
+    { "key": "version", "value": "1" },
+    { "key": "offerId", "value": "" },
+    { "key": "runId", "value": "" },
+    { "key": "candidateHash", "value": "" },
+    { "key": "agreementId", "value": "" },
+    { "key": "contentHash", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0 readiness",
+      "item": [
+        {
+          "name": "GET /live",
+          "request": { "method": "GET", "url": "{{baseUrl}}/live" }
+        },
+        {
+          "name": "GET /ready",
+          "request": { "method": "GET", "url": "{{baseUrl}}/ready" }
+        }
+      ]
+    },
+    {
+      "name": "1 demo session CLIENT",
+      "item": [
+        {
+          "name": "GET /api/v1/demo/profiles",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/demo/profiles"
+          }
+        },
+        {
+          "name": "POST /api/v1/demo/session client-romashka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.csrf_token) { pm.collectionVariables.set('csrf', j.csrf_token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_id\": \"client-romashka\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/demo/session"
+          }
+        },
+        {
+          "name": "GET /api/v1/auth/me",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 create + patch draft",
+      "item": [
+        {
+          "name": "GET products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/products"
+          }
+        },
+        {
+          "name": "POST applications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('applicationId', j.id); }",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_code\": \"WORKING_CAPITAL\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications"
+          }
+        },
+        {
+          "name": "PATCH application draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{version}},\n  \"draft_fields\": {\n    \"purpose\": \"working_capital\",\n    \"requested_amount\": \"1000000.00\",\n    \"term_months\": 12,\n    \"company_form\": \"LLC\",\n    \"monthly_revenue\": \"1500000.00\",\n    \"monthly_operating_costs\": \"1000000.00\",\n    \"declared_monthly_debt_payments\": \"100000.00\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}"
+          }
+        },
+        {
+          "name": "GET application",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 officer decision (after MANUAL_REVIEW)",
+      "item": [
+        {
+          "name": "POST demo/session officer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.csrf_token) { pm.collectionVariables.set('csrf', j.csrf_token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_id\": \"officer\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/demo/session"
+          }
+        },
+        {
+          "name": "GET bank dossier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }",
+                  "if (j.active_run_id) { pm.collectionVariables.set('runId', j.active_run_id); }",
+                  "if (j.risk_summary && j.risk_summary.candidate_hash) { pm.collectionVariables.set('candidateHash', j.risk_summary.candidate_hash); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bank/applications/{{applicationId}}"
+          }
+        },
+        {
+          "name": "POST decision APPROVE_OFFER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }",
+                  "if (j.offer && j.offer.id) { pm.collectionVariables.set('offerId', j.offer.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{version}},\n  \"run_id\": \"{{runId}}\",\n  \"type\": \"APPROVE_OFFER\",\n  \"candidate_hash\": \"{{candidateHash}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/bank/applications/{{applicationId}}/decision"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 accept + simulate-sign",
+      "item": [
+        {
+          "name": "POST demo/session client-romashka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.csrf_token) { pm.collectionVariables.set('csrf', j.csrf_token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_id\": \"client-romashka\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/demo/session"
+          }
+        },
+        {
+          "name": "GET offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j && j.id) { pm.collectionVariables.set('offerId', j.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}/offer"
+          }
+        },
+        {
+          "name": "POST offer/accept",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{version}},\n  \"offer_id\": \"{{offerId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}/offer/accept"
+          }
+        },
+        {
+          "name": "GET agreement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.agreement_id) { pm.collectionVariables.set('agreementId', j.agreement_id); }",
+                  "if (j.content_hash) { pm.collectionVariables.set('contentHash', j.content_hash); }",
+                  "if (j.version != null) { pm.collectionVariables.set('version', String(j.version)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}/agreement"
+          }
+        },
+        {
+          "name": "POST agreement/simulate-sign",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": {{version}},\n  \"agreement_id\": \"{{agreementId}}\",\n  \"content_hash\": \"{{contentHash}}\",\n  \"consent\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}/agreement/simulate-sign"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 CSRF negative",
+      "item": [
+        {
+          "name": "POST applications without CSRF → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_code\": \"WORKING_CAPITAL\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications"
+          }
+        }
+      ]
+    }
+  ]
+}
