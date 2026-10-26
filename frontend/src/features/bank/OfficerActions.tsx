@@ -13,6 +13,7 @@ import { ErrorBlock, Notice } from "../../components/States";
 import { formatAmount, formatRate } from "../../shared/money";
 import { EDITABLE_FIELDS, FIELD_LABELS } from "../client/draftForm";
 import { documentTitle, requiredDocuments } from "../client/policy";
+import { useToast } from "../../components/Toasts";
 import { REASON_CODES, reasonText } from "./labels";
 
 type DialogKind = "request" | "approve" | "reject" | "retry-checks" | "retry-disbursement";
@@ -46,6 +47,7 @@ function useOfficerCommandEffects(id: string, onDone: () => void) {
 }
 
 export function OfficerActions({ app }: { app: BankApplication }) {
+  const toast = useToast();
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [conflict, setConflict] = useState(false);
@@ -66,6 +68,7 @@ export function OfficerActions({ app }: { app: BankApplication }) {
     onSuccess: (updated: BankApplication) => {
       setConflict(false);
       effects.onSuccess(updated);
+      toast("Действие выполнено", "Досье обновлено.");
     },
   };
 

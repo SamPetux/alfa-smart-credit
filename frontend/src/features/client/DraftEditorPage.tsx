@@ -12,6 +12,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { KeyValueList, PageHeader, Panel } from "../../components/Layout";
 import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
 import { StatusBadge } from "../../components/StatusBadge";
+import { useToast } from "../../components/Toasts";
 import { formatTime } from "../../shared/dates";
 import { formatAmount } from "../../shared/money";
 import { COMPANY_FORMS, FIELD_LABELS, serverFieldErrors, validateForSubmit, type FieldErrors } from "./draftForm";
@@ -52,6 +53,7 @@ function DraftEditor({ app, product, products }: { app: ClientApplication; produ
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { session } = useSession();
+  const toast = useToast();
   const editing = useDraftEditing(app);
   const [uploaded, setUploaded] = useState<Record<string, UploadedDocument>>({});
   const [confirming, setConfirming] = useState(false);
@@ -61,6 +63,7 @@ function DraftEditor({ app, product, products }: { app: ClientApplication; produ
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.application(app.id), updated);
       void queryClient.invalidateQueries({ queryKey: queryKeys.applications, exact: true });
+      toast("Заявка отправлена", "Проверка началась, статус обновится сам.");
       navigate(`/applications/${app.id}`, { replace: true });
     },
     onError: (error) => {

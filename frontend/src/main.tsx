@@ -1,4 +1,4 @@
-import "@fontsource-variable/golos-text/wght.css";
+import "@fontsource-variable/onest/wght.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/components.css";

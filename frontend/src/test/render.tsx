@@ -1,10 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { vi } from "vitest";
 import { createQueryClient } from "../api/queryClient";
 import { SessionProvider } from "../api/session";
+import { ToastProvider } from "../components/Toasts";
 
 export function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -33,9 +35,13 @@ export function renderRoute(element: ReactElement, { path = "/", url = "/" } = {
   );
   return render(
     <QueryClientProvider client={createQueryClient()}>
-      <SessionProvider>
-        <RouterProvider router={router} />
-      </SessionProvider>
+      <MotionConfig reducedMotion="always">
+        <SessionProvider>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </SessionProvider>
+      </MotionConfig>
     </QueryClientProvider>,
   );
 }

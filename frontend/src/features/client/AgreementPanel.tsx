@@ -8,11 +8,13 @@ import { Button } from "../../components/Button";
 import { DocumentView } from "../../components/DocumentView";
 import { Panel } from "../../components/Layout";
 import { ErrorBlock, LoadingBlock, Notice } from "../../components/States";
+import { useToast } from "../../components/Toasts";
 import { isConflict, useApplicationCommandEffects } from "./commandEffects";
 
 /** Документ для ознакомления и явное согласие на имитацию подписания текущей версии. */
 export function AgreementPanel({ app }: { app: ClientApplication }) {
   const effects = useApplicationCommandEffects(app.id);
+  const toast = useToast();
   const [consent, setConsent] = useState(false);
   const agreement = useQuery({
     queryKey: queryKeys.agreement(app.id),
@@ -22,7 +24,13 @@ export function AgreementPanel({ app }: { app: ClientApplication }) {
   const sign = useCommand(
     (input: { agreementId: string; contentHash: string }, ctx) =>
       api.simulateSign(app.id, { expectedVersion: app.version, ...input }, ctx),
-    effects,
+    {
+      ...effects,
+      onSuccess: (updated) => {
+        effects.onSuccess(updated);
+        toast("Подписание смоделировано", "Ждём имитацию выдачи.");
+      },
+    },
   );
 
   return (

@@ -71,6 +71,23 @@ export function QueuePage() {
     <div className="stack-lg">
       <PageHeader title="Очередь заявок" meta={<span>Заявки всех клиентов; права проверяет сервер для каждой записи.</span>} />
 
+      {queue.data ? (
+        <section className="kpi-strip" aria-label="Сводка по очереди">
+          <div className="kpi kpi-due">
+            <span className="small">Ждут действия</span>
+            <span className="kpi-value num">{dueCount}</span>
+          </div>
+          <div className="kpi">
+            <span className="small">{filtered ? "В выбранном фильтре" : "Всего в очереди"}</span>
+            <span className="kpi-value num">{items.length}</span>
+          </div>
+          <div className="kpi">
+            <span className="small">Завершено выдачей</span>
+            <span className="kpi-value num">{items.filter((app) => app.status === "COMPLETED").length}</span>
+          </div>
+        </section>
+      ) : null}
+
       <div className="filters">
         <Field label="Статус">
           {(control) => (
@@ -111,12 +128,7 @@ export function QueuePage() {
       <Panel
         title="Заявки"
         aside={
-          queue.data ? (
-            <span className="small muted">
-              <span className="num">{items.length}</span> в списке, <span className="num">{dueCount}</span> ждут действия
-              {items.length >= PAGE_LIMIT ? `; показаны первые ${PAGE_LIMIT}` : ""}
-            </span>
-          ) : null
+          items.length >= PAGE_LIMIT ? <span className="small muted">Показаны первые {PAGE_LIMIT}</span> : null
         }
       >
         {queue.isPending ? (

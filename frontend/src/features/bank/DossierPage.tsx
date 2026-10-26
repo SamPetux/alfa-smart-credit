@@ -87,7 +87,7 @@ function RiskAssessment({ app }: { app: BankApplication }) {
   return (
     <Panel title="Оценка риска и рекомендация" aside={<span className="tag">Расчёт risk-v1</span>}>
       <div className="risk-summary">
-        <div>
+        <div className="risk-main">
           <span className="small muted">Рекомендация</span>
           <strong className="risk-value">{recommendationText(risk.recommendation)}</strong>
         </div>
@@ -118,9 +118,17 @@ function RiskAssessment({ app }: { app: BankApplication }) {
       {risk.factors?.length ? (
         <div className="stack-tight">
           <h3>Вклад факторов</h3>
-          <KeyValueList
-            items={risk.factors.map((f) => ({ label: factorText(f.code), value: `${f.points}`, numeric: true }))}
-          />
+          <ul aria-label="Вклад факторов в учебный балл">
+            {risk.factors.map((f) => (
+              <li key={f.code} className="factor-row">
+                <span>{factorText(f.code)}</span>
+                <span className="factor-bar" aria-hidden="true">
+                  <span style={{ width: `${Math.min(100, (f.points / 30) * 100)}%` }} />
+                </span>
+                <span className="factor-points num">{f.points}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
       {a ? (
