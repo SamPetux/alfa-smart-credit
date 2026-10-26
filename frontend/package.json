@@ -3,11 +3,38 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "description": "Клиентский и банковский кабинеты (Игорь, F01–F10). Типы API генерируются из contracts/openapi.json.",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "gen:api": "openapi-typescript ../contracts/openapi.json -o src/api/schema.gen.ts",
+    "check:api": "openapi-typescript ../contracts/openapi.json -o .api-check.gen.ts && node scripts/compare-generated.mjs src/api/schema.gen.ts .api-check.gen.ts"
   },
-  "description": "Scaffold only — Игорь выбирает UI-библиотеку и фиксирует lock-файл (Fxx)."
+  "dependencies": {
+    "@fontsource-variable/golos-text": "5.2.6",
+    "@tanstack/react-query": "5.81.5",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router": "7.18.4"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
+    "@vitejs/plugin-react": "4.5.2",
+    "jsdom": "26.1.0",
+    "openapi-typescript": "7.8.0",
+    "typescript": "5.8.3",
+    "vite": "6.4.5",
+    "vitest": "4.1.12"
+  }
 }
